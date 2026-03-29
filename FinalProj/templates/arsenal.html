@@ -1,0 +1,219 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Wayne Industries — Arsenal</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;600;700;900&family=Share+Tech+Mono&family=Rajdhani:wght@300;400;500;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/static/css/arsenal.css">
+</head>
+<body>
+
+<!-- ── FUNDO ──────────────────────────────────────────── -->
+<div class="cave-bg"></div>
+<div class="grid-overlay"></div>
+<div class="scanlines"></div>
+<div class="scan-beam"></div>
+
+<!-- ── CANTOS ─────────────────────────────────────────── -->
+<div class="corner tl"></div>
+<div class="corner tr"></div>
+<div class="corner bl"></div>
+<div class="corner br"></div>
+
+<!-- ── BARRA SUPERIOR ──────────────────────────────────── -->
+<div class="status-bar">WAYNE INDUSTRIES · BAT-COMPUTADOR</div>
+<div class="status-left">
+  <div class="status-dot"></div>
+  <span>SYS ONLINE</span>
+</div>
+<div class="status-right" id="clock">00:00:00</div>
+<button class="logout-btn" onclick="goBack()">
+  <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+    <polyline points="15 18 9 12 15 6"/>
+  </svg>
+  VOLTAR
+</button>
+
+<!-- ── CABEÇALHO ───────────────────────────────────────── -->
+<div class="header-zone">
+  <div class="header-welcome">MÓDULO · MOD-001</div>
+  <div class="header-user">ARSENAL</div>
+  <div class="header-clearance" id="header-clearance">CLEARANCE: — · CARREGANDO...</div>
+</div>
+
+<!-- ── CONTEÚDO PRINCIPAL ─────────────────────────────── -->
+<div class="main">
+  <div class="arsenal-container">
+
+    <!-- ── BARRA DE FERRAMENTAS ──────────────────────── -->
+    <div class="toolbar">
+      <div class="toolbar-left">
+        <!-- Busca -->
+        <div class="search-wrap">
+          <span class="search-icon">⌕</span>
+          <input type="text" id="busca" class="field-input search-input" placeholder="BUSCAR POR NOME, CÓDIGO...">
+        </div>
+        <!-- Filtro status -->
+        <select id="filtro-status" class="field-input select-input">
+          <option value="">TODOS OS STATUS</option>
+          <option value="disponivel">DISPONÍVEL</option>
+          <option value="em_uso">EM USO</option>
+          <option value="manutencao">MANUTENÇÃO</option>
+        </select>
+        <!-- Filtro categoria -->
+        <select id="filtro-categoria" class="field-input select-input">
+          <option value="">TODAS AS CATEGORIAS</option>
+        </select>
+      </div>
+      <div class="toolbar-right">
+        <div class="stats-bar">
+          <span class="stat-item">TOTAL <span class="stat-val" id="stat-total">0</span></span>
+          <span class="stat-sep">·</span>
+          <span class="stat-item">DISPONÍVEL <span class="stat-val green" id="stat-disp">0</span></span>
+          <span class="stat-sep">·</span>
+          <span class="stat-item">EM USO <span class="stat-val yellow" id="stat-uso">0</span></span>
+          <span class="stat-sep">·</span>
+          <span class="stat-item">MANUTENÇÃO <span class="stat-val red" id="stat-manut">0</span></span>
+        </div>
+        <!-- Botão adicionar (apenas para quem tem permissão) -->
+        <button class="btn-add" id="btn-add" onclick="openModal()" style="display:none">
+          + NOVO ITEM
+        </button>
+      </div>
+    </div>
+
+    <!-- ── TABELA ─────────────────────────────────────── -->
+    <div class="table-wrap">
+      <table class="arsenal-table">
+        <thead>
+          <tr>
+            <th>CÓDIGO</th>
+            <th>NOME</th>
+            <th>CATEGORIA</th>
+            <th>QTD</th>
+            <th>STATUS</th>
+            <th>DESCRIÇÃO</th>
+            <th>ATUALIZADO</th>
+            <th id="col-acoes" style="display:none">AÇÕES</th>
+          </tr>
+        </thead>
+        <tbody id="arsenal-tbody">
+          <tr class="loading-row">
+            <td colspan="8">
+              <span class="loading-text">▸ CARREGANDO INVENTÁRIO...</span>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+  </div>
+</div>
+
+<!-- ── BARRA INFERIOR ───────────────────────────────────── -->
+<div class="info-strip">
+  <span>SESSÃO <span class="i-val" id="session-user">—</span></span>
+  <span>MÓDULO <span class="i-val">ARSENAL</span></span>
+  <span>ITENS <span class="i-val" id="strip-total">—</span></span>
+  <span>NODE <span class="i-val">BAT-CORE-01</span></span>
+</div>
+<div class="bottom-bar">
+  <span>WAYNE INDUSTRIES © 2025</span>
+  <span>ENCRYPTED · AES-512</span>
+  <span>v4.7.1-DARK</span>
+</div>
+
+<!-- ── MODAL: ADICIONAR / EDITAR ───────────────────────── -->
+<div class="modal-overlay" id="modal-overlay">
+  <div class="modal-panel">
+    <div class="c-acc tl"></div><div class="c-acc tr"></div>
+    <div class="c-acc bl"></div><div class="c-acc br"></div>
+
+    <div class="modal-header">
+      <div class="modal-title" id="modal-title">NOVO ITEM · ARSENAL</div>
+      <button class="modal-close" onclick="closeModal()">✕</button>
+    </div>
+
+    <div class="modal-body">
+      <input type="hidden" id="edit-id">
+
+      <div class="form-row">
+        <div class="form-field">
+          <label class="field-label">▸ CÓDIGO</label>
+          <input type="text" id="f-codigo" class="field-input" placeholder="BAT-XXX">
+        </div>
+        <div class="form-field">
+          <label class="field-label">▸ CATEGORIA</label>
+          <select id="f-categoria" class="field-input">
+            <option value="Projéteis">Projéteis</option>
+            <option value="Mobilidade">Mobilidade</option>
+            <option value="Suporte">Suporte</option>
+            <option value="Combate">Combate</option>
+            <option value="Imobilização">Imobilização</option>
+            <option value="Vigilância">Vigilância</option>
+            <option value="Médico">Médico</option>
+            <option value="Demolição">Demolição</option>
+            <option value="Geral">Geral</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="form-field full">
+        <label class="field-label">▸ NOME DO ITEM</label>
+        <input type="text" id="f-nome" class="field-input" placeholder="EX: BATARANG STANDARD">
+      </div>
+
+      <div class="form-row">
+        <div class="form-field">
+          <label class="field-label">▸ QUANTIDADE</label>
+          <input type="number" id="f-quantidade" class="field-input" placeholder="0" min="0">
+        </div>
+        <div class="form-field">
+          <label class="field-label">▸ STATUS</label>
+          <select id="f-status" class="field-input">
+            <option value="disponivel">DISPONÍVEL</option>
+            <option value="em_uso">EM USO</option>
+            <option value="manutencao">MANUTENÇÃO</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="form-field full">
+        <label class="field-label">▸ DESCRIÇÃO / ESPECIFICAÇÕES</label>
+        <textarea id="f-descricao" class="field-input" rows="3" placeholder="DETALHES TÉCNICOS DO EQUIPAMENTO..."></textarea>
+      </div>
+
+      <div class="alert" id="modal-alert"></div>
+    </div>
+
+    <div class="modal-footer">
+      <button class="btn-cancel" onclick="closeModal()">CANCELAR</button>
+      <button class="btn-save" id="btn-save" onclick="saveItem()">▸ SALVAR</button>
+    </div>
+  </div>
+</div>
+
+<!-- ── MODAL: CONFIRMAR EXCLUSÃO ───────────────────────── -->
+<div class="modal-overlay" id="confirm-overlay">
+  <div class="modal-panel confirm-panel">
+    <div class="c-acc tl"></div><div class="c-acc tr"></div>
+    <div class="c-acc bl"></div><div class="c-acc br"></div>
+    <div class="modal-header">
+      <div class="modal-title" style="color:var(--red)">⚠ CONFIRMAR REMOÇÃO</div>
+    </div>
+    <div class="modal-body">
+      <p class="confirm-text">Tem certeza que deseja remover o item <strong id="confirm-item-name"></strong> do arsenal?</p>
+      <p class="confirm-sub">Esta ação não pode ser desfeita. O registro será permanentemente deletado.</p>
+    </div>
+    <div class="modal-footer">
+      <button class="btn-cancel" onclick="closeConfirm()">CANCELAR</button>
+      <button class="btn-delete" id="btn-confirm-delete" onclick="confirmDelete()">▸ CONFIRMAR REMOÇÃO</button>
+    </div>
+  </div>
+</div>
+
+<script src="/static/js/arsenal.js"></script>
+</body>
+</html>

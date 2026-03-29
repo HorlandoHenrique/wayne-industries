@@ -1,0 +1,1224 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>PROTOCOLO SOMBRA · CLASSIFICADO</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;600;700;900&family=Share+Tech+Mono&display=swap" rel="stylesheet">
+<style>
+/* ── RESET & BASE ─────────────────────────────────────── */
+*, *::before, *::after { margin:0; padding:0; box-sizing:border-box; }
+
+:root {
+  --cyan:    #00d4ff;
+  --red:     #ff2244;
+  --yellow:  #ffcc00;
+  --green:   #00ff88;
+  --dark:    #020c10;
+  --border:  rgba(0,212,255,0.18);
+  --text-dim:rgba(0,212,255,0.45);
+  --mono:    'Share Tech Mono', monospace;
+  --orb:     'Orbitron', sans-serif;
+}
+
+html { scroll-behavior: smooth; }
+
+body {
+  background: var(--dark);
+  color: var(--cyan);
+  font-family: var(--mono);
+  overflow-x: hidden;
+  cursor: crosshair;
+}
+
+/* ── BACKGROUND FX ────────────────────────────────────── */
+#bg-canvas { position:fixed;inset:0;z-index:0;pointer-events:none; }
+
+.scanlines {
+  position:fixed;inset:0;z-index:1;pointer-events:none;
+  background: repeating-linear-gradient(
+    0deg, transparent, transparent 2px,
+    rgba(0,0,0,0.06) 2px, rgba(0,0,0,0.06) 4px);
+}
+.vignette {
+  position:fixed;inset:0;z-index:1;pointer-events:none;
+  background: radial-gradient(ellipse 80% 80% at 50% 50%, transparent 45%, rgba(2,12,16,0.85) 100%);
+}
+.corner { position:fixed;width:18px;height:18px;border-color:var(--cyan);border-style:solid;z-index:10; }
+.corner.tl{top:6px;left:6px;border-width:2px 0 0 2px}
+.corner.tr{top:6px;right:6px;border-width:2px 2px 0 0}
+.corner.bl{bottom:6px;left:6px;border-width:0 0 2px 2px}
+.corner.br{bottom:6px;right:6px;border-width:0 2px 2px 0}
+
+/* ── RED ALERT STRIPE (topo) ──────────────────────────── */
+#alert-stripe {
+  position:fixed;top:0;left:0;right:0;z-index:50;
+  height:28px;
+  background: repeating-linear-gradient(
+    90deg, rgba(255,34,68,0.12) 0, rgba(255,34,68,0.12) 20px,
+    transparent 20px, transparent 40px);
+  border-bottom:1px solid rgba(255,34,68,0.3);
+  display:flex;align-items:center;justify-content:center;gap:60px;
+  font-family:var(--orb);font-size:8px;letter-spacing:4px;
+  color:var(--red);text-shadow:0 0 8px var(--red);
+  animation: stripe-blink 3s step-end infinite;
+}
+@keyframes stripe-blink { 0%,100%{opacity:1}50%{opacity:.7} }
+
+/* ── TOPBAR ───────────────────────────────────────────── */
+#topbar {
+  position:fixed;top:28px;left:0;right:0;z-index:40;height:36px;
+  background:rgba(0,6,10,0.97);border-bottom:1px solid var(--border);
+  display:flex;align-items:center;justify-content:center;
+  font-family:var(--orb);font-size:11px;font-weight:700;letter-spacing:5px;
+  color:var(--red);text-shadow:0 0 16px var(--red);
+}
+#tl-top{position:absolute;left:16px;display:flex;align-items:center;gap:6px;
+  font-size:9px;letter-spacing:2px;color:var(--text-dim)}
+#tr-top{position:absolute;right:130px;font-size:9px;letter-spacing:2px;color:var(--text-dim);
+  animation:blink 1.2s step-end infinite}
+#back-btn{position:absolute;right:0;height:36px;padding:0 18px;
+  background:transparent;border:none;border-left:1px solid var(--border);
+  color:var(--text-dim);font-family:var(--orb);font-size:9px;letter-spacing:2px;
+  cursor:pointer;transition:color .25s}
+#back-btn:hover{color:var(--cyan)}
+.rdot{width:7px;height:7px;border-radius:50%;background:var(--red);
+  box-shadow:0 0 8px var(--red);animation:pulse 1s ease-in-out infinite}
+
+/* ── SIDEBAR NAV ──────────────────────────────────────── */
+#sidebar {
+  position:fixed;left:0;top:64px;bottom:26px;width:200px;z-index:30;
+  background:rgba(0,4,8,0.96);border-right:1px solid var(--border);
+  display:flex;flex-direction:column;padding:20px 0;overflow-y:auto;
+}
+.sb-title{font-family:var(--orb);font-size:7px;letter-spacing:4px;
+  color:rgba(255,34,68,0.5);padding:0 18px 12px;border-bottom:1px solid var(--border);margin-bottom:8px}
+.sb-link{display:block;padding:9px 18px;font-size:9px;letter-spacing:2px;
+  color:var(--text-dim);text-decoration:none;border-left:2px solid transparent;
+  transition:all .25s;cursor:pointer}
+.sb-link:hover,.sb-link.active{color:var(--cyan);border-left-color:var(--cyan);
+  background:rgba(0,212,255,.04)}
+.sb-sep{height:1px;background:var(--border);margin:8px 18px}
+.sb-section{font-family:var(--orb);font-size:7px;letter-spacing:3px;
+  color:rgba(0,212,255,.25);padding:10px 18px 4px}
+
+/* ── MAIN CONTENT ─────────────────────────────────────── */
+#main {
+  margin-left:200px;padding:90px 40px 60px;
+  position:relative;z-index:2;min-height:100vh;
+}
+
+/* ── SECTIONS ─────────────────────────────────────────── */
+.section { margin-bottom: 60px; scroll-margin-top: 80px; }
+
+.section-header {
+  display:flex;align-items:center;gap:14px;
+  margin-bottom:20px;padding-bottom:12px;
+  border-bottom:1px solid var(--border);
+}
+.section-num{
+  font-family:var(--orb);font-size:8px;letter-spacing:3px;
+  color:var(--red);min-width:60px;
+}
+.section-title{
+  font-family:var(--orb);font-size:14px;font-weight:900;letter-spacing:4px;
+  color:var(--cyan);text-shadow:0 0 14px rgba(0,212,255,.4);
+}
+.section-badge{
+  margin-left:auto;font-family:var(--orb);font-size:8px;letter-spacing:3px;
+  padding:3px 10px;border:1px solid rgba(255,34,68,.4);
+  color:var(--red);background:rgba(255,34,68,.05);
+}
+
+/* ── INTRO CARD ───────────────────────────────────────── */
+.intro-card {
+  border:1px solid rgba(255,34,68,.25);padding:24px;
+  background:rgba(255,34,68,.03);position:relative;margin-bottom:28px;
+}
+.intro-card::before{
+  content:'';position:absolute;top:0;left:0;right:0;height:1px;
+  background:linear-gradient(90deg,transparent,var(--red),transparent);
+}
+.intro-text{
+  font-size:11px;letter-spacing:1px;color:rgba(0,212,255,.7);
+  line-height:1.85;
+}
+.intro-sig{
+  margin-top:16px;font-family:var(--orb);font-size:10px;letter-spacing:3px;
+  color:var(--red);border-top:1px solid rgba(255,34,68,.2);padding-top:12px;
+  display:flex;justify-content:space-between;
+}
+
+/* ── TIMELINE ─────────────────────────────────────────── */
+.timeline { display:flex;flex-direction:column;gap:0;position:relative;padding-left:28px; }
+.timeline::before{
+  content:'';position:absolute;left:7px;top:0;bottom:0;
+  width:1px;background:linear-gradient(to bottom,var(--red),var(--border),transparent);
+}
+.tl-item { position:relative;padding:0 0 28px; }
+.tl-dot {
+  position:absolute;left:-28px;top:4px;width:15px;height:15px;
+  border-radius:50%;border:1px solid var(--red);background:var(--dark);
+  display:flex;align-items:center;justify-content:center;
+}
+.tl-dot::after{content:'';width:5px;height:5px;border-radius:50%;background:var(--red);box-shadow:0 0 6px var(--red);}
+.tl-dot.cyan{border-color:var(--cyan)}
+.tl-dot.cyan::after{background:var(--cyan);box-shadow:0 0 6px var(--cyan)}
+.tl-year{
+  font-family:var(--orb);font-size:8px;letter-spacing:3px;
+  color:var(--red);margin-bottom:4px;
+}
+.tl-year.cyan{color:var(--cyan)}
+.tl-title{
+  font-family:var(--orb);font-size:11px;font-weight:700;letter-spacing:2px;
+  color:var(--cyan);margin-bottom:6px;
+}
+.tl-body{font-size:10px;letter-spacing:.8px;color:var(--text-dim);line-height:1.75;}
+.tl-tag{
+  display:inline-block;margin-top:6px;padding:2px 8px;
+  font-family:var(--orb);font-size:7px;letter-spacing:2px;
+  border:1px solid rgba(255,204,0,.35);color:var(--yellow);background:rgba(255,204,0,.04);
+}
+
+/* ── TABLE ────────────────────────────────────────────── */
+.s-table-wrap{ overflow-x:auto;margin-top:4px; }
+.s-table{
+  width:100%;border-collapse:collapse;
+  font-size:10px;letter-spacing:.8px;
+}
+.s-table th{
+  font-family:var(--orb);font-size:8px;letter-spacing:3px;
+  color:var(--text-dim);border-bottom:1px solid var(--border);
+  padding:8px 12px;text-align:left;font-weight:400;white-space:nowrap;
+}
+.s-table td{
+  padding:10px 12px;border-bottom:1px solid rgba(0,212,255,.07);
+  vertical-align:top;color:rgba(0,212,255,.65);
+}
+.s-table tr:hover td{background:rgba(0,212,255,.03)}
+.td-hero{font-family:var(--orb);font-size:10px;font-weight:700;color:var(--cyan);white-space:nowrap}
+.td-weakness{color:var(--red);font-size:10px;max-width:200px}
+.td-plan{color:var(--text-dim);font-size:10px;max-width:280px}
+.td-status{font-family:var(--orb);font-size:8px;letter-spacing:2px;white-space:nowrap}
+.st-ok{color:var(--green)}
+.st-exp{color:var(--yellow)}
+.st-comp{color:var(--red);animation:blink 2s step-end infinite}
+.threat-bar{
+  display:flex;align-items:center;gap:6px;
+}
+.threat-dots{display:flex;gap:3px}
+.threat-dot{
+  width:8px;height:8px;border-radius:50%;
+  background:rgba(0,212,255,.15);
+}
+.threat-dot.on-red{background:var(--red);box-shadow:0 0 4px var(--red)}
+.threat-dot.on-yellow{background:var(--yellow);box-shadow:0 0 4px var(--yellow)}
+.threat-dot.on-cyan{background:var(--cyan);box-shadow:0 0 4px var(--cyan)}
+.threat-num{font-family:var(--orb);font-size:10px;font-weight:700}
+
+/* ── PROFILE CARD ─────────────────────────────────────── */
+.profile-grid{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+.profile-card{
+  border:1px solid var(--border);padding:18px;
+  background:rgba(0,212,255,.02);position:relative;
+  transition:border-color .3s;
+}
+.profile-card:hover{border-color:rgba(0,212,255,.4)}
+.profile-card::after{
+  content:'';position:absolute;bottom:0;left:0;right:0;height:1px;
+  background:linear-gradient(90deg,transparent,var(--cyan),transparent);
+  opacity:.3;
+}
+.pc-code{font-family:var(--orb);font-size:8px;letter-spacing:4px;color:var(--text-dim);margin-bottom:8px}
+.pc-name{font-family:var(--orb);font-size:13px;font-weight:900;letter-spacing:3px;
+  color:var(--cyan);text-shadow:0 0 10px rgba(0,212,255,.3);margin-bottom:4px}
+.pc-alias{font-size:10px;color:rgba(0,212,255,.45);margin-bottom:12px}
+.pc-stat{
+  display:flex;justify-content:space-between;align-items:center;
+  padding:5px 0;border-bottom:1px solid rgba(0,212,255,.07);
+  font-size:9px;letter-spacing:1px;
+}
+.pc-stat:last-child{border-bottom:none}
+.pc-stat-label{color:rgba(0,212,255,.4)}
+.pc-stat-val{color:var(--cyan)}
+.pc-stat-val.red{color:var(--red)}
+.pc-stat-val.yellow{color:var(--yellow)}
+.pc-stat-val.green{color:var(--green)}
+
+/* ── PLAN BLOCK ───────────────────────────────────────── */
+.plan-block{
+  border-left:2px solid var(--red);padding:16px 20px;margin-bottom:14px;
+  background:rgba(255,34,68,.03);
+}
+.plan-block.cyan{border-left-color:var(--cyan);background:rgba(0,212,255,.025)}
+.plan-block.yellow{border-left-color:var(--yellow);background:rgba(255,204,0,.025)}
+.pb-title{
+  font-family:var(--orb);font-size:10px;font-weight:700;letter-spacing:3px;
+  color:var(--red);margin-bottom:8px;
+}
+.pb-title.cyan{color:var(--cyan)}
+.pb-title.yellow{color:var(--yellow)}
+.pb-body{font-size:10px;letter-spacing:.8px;color:var(--text-dim);line-height:1.75}
+.pb-sub{
+  margin-top:8px;padding:8px 12px;background:rgba(0,0,0,.3);
+  border:1px solid rgba(0,212,255,.1);font-size:9px;letter-spacing:1px;
+  color:rgba(0,212,255,.4);line-height:1.7;
+}
+
+/* ── IDENTITY REVEAL ──────────────────────────────────── */
+.redacted{
+  background:var(--cyan);color:var(--cyan);
+  letter-spacing:1px;cursor:pointer;
+  transition:all .4s;padding:0 4px;border-radius:1px;
+  user-select:none;
+}
+.redacted:hover,.redacted.revealed{background:transparent;color:var(--red);text-shadow:0 0 8px var(--red)}
+.redacted-label{font-size:8px;color:var(--text-dim);margin-left:6px}
+
+/* ── PSYCHE BAR ───────────────────────────────────────── */
+.psyche-row{display:flex;align-items:center;gap:12px;margin-bottom:8px}
+.psyche-label{font-family:var(--orb);font-size:8px;letter-spacing:2px;color:var(--text-dim);min-width:140px}
+.psyche-bar-wrap{flex:1;height:6px;background:rgba(0,212,255,.1);position:relative;}
+.psyche-bar-fill{height:100%;transition:width 1.5s ease;width:0}
+.psyche-val{font-family:var(--orb);font-size:9px;min-width:30px;text-align:right}
+
+/* ── TERMINAL BLOCK ───────────────────────────────────── */
+.terminal{
+  background:#000;border:1px solid rgba(0,212,255,.2);padding:16px;
+  font-family:var(--mono);font-size:10px;letter-spacing:1px;
+  color:var(--green);line-height:1.8;
+}
+.terminal .t-cmd{color:var(--cyan)}
+.terminal .t-out{color:rgba(0,255,136,.7)}
+.terminal .t-warn{color:var(--yellow)}
+.terminal .t-err{color:var(--red)}
+
+/* ── QUOTE ────────────────────────────────────────────── */
+.quote-block{
+  border-left:3px solid rgba(0,212,255,.3);padding:14px 20px;
+  margin:16px 0;background:rgba(0,212,255,.02);
+}
+.quote-text{font-size:12px;font-style:italic;color:rgba(0,212,255,.6);line-height:1.8;letter-spacing:.8px}
+.quote-src{margin-top:8px;font-family:var(--orb);font-size:8px;letter-spacing:3px;color:rgba(0,212,255,.3)}
+
+/* ── BOTTOMBAR ────────────────────────────────────────── */
+#bottombar{
+  position:fixed;bottom:0;left:0;right:0;z-index:40;height:26px;
+  background:rgba(0,4,8,.97);border-top:1px solid var(--border);
+  display:flex;align-items:center;justify-content:center;gap:50px;
+  font-size:8px;letter-spacing:3px;color:var(--text-dim);
+}
+
+/* ── UTIL ANIMATIONS ──────────────────────────────────── */
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.4}}
+@keyframes blink{0%,100%{opacity:1}50%{opacity:0}}
+@keyframes fadeIn{from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:translateY(0)}}
+@keyframes scanLine{
+  0%{top:-2px}100%{top:100%}
+}
+
+.fade-in{animation:fadeIn .6s ease both}
+
+/* ── SCAN BEAM ────────────────────────────────────────── */
+.scan-beam{
+  position:fixed;left:0;right:0;height:2px;z-index:3;pointer-events:none;
+  background:linear-gradient(90deg,transparent,rgba(0,212,255,.06),rgba(0,212,255,.12),rgba(0,212,255,.06),transparent);
+  animation:scanLine 6s linear infinite;
+}
+
+/* ── CLASSIFIED WATERMARK ─────────────────────────────── */
+.watermark{
+  position:fixed;top:50%;left:50%;transform:translate(-50%,-50%) rotate(-35deg);
+  font-family:var(--orb);font-size:80px;font-weight:900;letter-spacing:8px;
+  color:rgba(255,34,68,.028);pointer-events:none;z-index:0;white-space:nowrap;
+}
+</style>
+</head>
+<body>
+
+<!-- BG -->
+<canvas id="bg-canvas"></canvas>
+<div class="scanlines"></div>
+<div class="vignette"></div>
+<div class="scan-beam"></div>
+<div class="watermark">CLASSIFICADO</div>
+<div class="corner tl"></div><div class="corner tr"></div>
+<div class="corner bl"></div><div class="corner br"></div>
+
+<!-- ALERT STRIPE -->
+<div id="alert-stripe">
+  <span>⚠ NÍVEL OMEGA · ACESSO RESTRITO</span>
+  <span>PROTOCOLO SOMBRA · ATIVO</span>
+  <span>⚠ DISTRIBUIÇÃO PROIBIDA</span>
+</div>
+
+<!-- TOPBAR -->
+<div id="topbar">
+  PROTOCOLO SOMBRA · ARQUIVOS PESSOAIS · BRUCE WAYNE
+  <div id="tl-top"><div class="rdot"></div> SEGURO</div>
+  <button id="back-btn" onclick="goBack()">◀ SAIR</button>
+  <div id="tr-top" id="clock">00:00:00</div>
+</div>
+
+<!-- SIDEBAR -->
+<div id="sidebar">
+  <div class="sb-title">ÍNDICE CLASSIFICADO</div>
+
+  <div class="sb-section">ORIGEM</div>
+  <a class="sb-link active" onclick="scrollTo('s-origem')">▸ História Pessoal</a>
+  <a class="sb-link" onclick="scrollTo('s-trauma')">▸ O Evento</a>
+  <a class="sb-link" onclick="scrollTo('s-treinamento')">▸ Treinamento</a>
+
+  <div class="sb-sep"></div>
+  <div class="sb-section">OPERAÇÕES</div>
+  <a class="sb-link" onclick="scrollTo('s-identidade')">▸ Identidade Dual</a>
+  <a class="sb-link" onclick="scrollTo('s-aliados')">▸ Rede de Aliados</a>
+  <a class="sb-link" onclick="scrollTo('s-fragilidades')">▸ Perfil Psicológico</a>
+
+  <div class="sb-sep"></div>
+  <div class="sb-section">CONTINGÊNCIA</div>
+  <a class="sb-link" onclick="scrollTo('s-babel')">▸ Dossier Torre de Babel</a>
+  <a class="sb-link" onclick="scrollTo('s-failsafe')">▸ Protocolo Failsafe</a>
+  <a class="sb-link" onclick="scrollTo('s-batman-contingency')">▸ Plano Contra Batman</a>
+
+  <div class="sb-sep"></div>
+  <div class="sb-section">SEGREDOS</div>
+  <a class="sb-link" onclick="scrollTo('s-mortes')">▸ Falhas e Mortes</a>
+  <a class="sb-link" onclick="scrollTo('s-planos')">▸ Planos Futuros</a>
+  <a class="sb-link" onclick="scrollTo('s-brother-eye')">▸ Brother Eye</a>
+</div>
+
+<!-- MAIN -->
+<div id="main">
+
+<!-- ════════════════════════════════════════════════════════
+     INTRO
+     ════════════════════════════════════════════════════════ -->
+<div class="section fade-in" style="margin-bottom:40px">
+  <div class="intro-card">
+    <p class="intro-text">
+      Este arquivo existe porque o mundo não é seguro. A Liga da Justiça não é segura.
+      <em>Eu</em> não sou seguro. Cada plano aqui registrado foi concebido como seguro de morte —
+      para o caso de qualquer membro da Liga, incluindo eu mesmo, precisar ser detido.
+      <br><br>
+      Se você está lendo isto sem minha autorização, então algo deu muito errado.
+      Os arquivos primários foram comprometidos uma vez — por Talia al Ghul, a mando de Ra's.
+      Os arquivos que você lê agora são a versão revisada, criptografada com chave biométrica
+      vinculada ao meu DNA. Não existe backup digital acessível remotamente.
+      <br><br>
+      Estes não são planos de ataque. São planos de <strong style="color:var(--cyan)">contenção</strong>.
+      Existe uma diferença. Eu espero que nunca precise usá-los.
+    </p>
+    <div class="intro-sig">
+      <span>BRUCE WAYNE · BATMAN</span>
+      <span id="doc-date">DATA DE CRIAÇÃO: —</span>
+    </div>
+  </div>
+</div>
+
+<!-- ════════════════════════════════════════════════════════
+     1 · HISTÓRIA PESSOAL
+     ════════════════════════════════════════════════════════ -->
+<div class="section fade-in" id="s-origem">
+  <div class="section-header">
+    <div class="section-num">SEC-01</div>
+    <div class="section-title">HISTÓRIA PESSOAL</div>
+    <div class="section-badge">NÍVEL OMEGA</div>
+  </div>
+
+  <div class="profile-grid">
+    <div class="profile-card">
+      <div class="pc-code">IDENTIDADE PRIMÁRIA</div>
+      <div class="pc-name">BRUCE THOMAS WAYNE</div>
+      <div class="pc-alias">A.K.A.: Batman · O Cavaleiro das Trevas · O Detetive</div>
+      <div class="pc-stat"><span class="pc-stat-label">DATA DE NASCIMENTO</span><span class="pc-stat-val">CLASSIFICADO</span></div>
+      <div class="pc-stat"><span class="pc-stat-label">LOCAL</span><span class="pc-stat-val">Gotham City, NJ</span></div>
+      <div class="pc-stat"><span class="pc-stat-label">SANGUE</span><span class="pc-stat-val">O+</span></div>
+      <div class="pc-stat"><span class="pc-stat-label">ALTURA</span><span class="pc-stat-val">1,88m</span></div>
+      <div class="pc-stat"><span class="pc-stat-label">PESO</span><span class="pc-stat-val">95 kg (sem armadura)</span></div>
+      <div class="pc-stat"><span class="pc-stat-label">PATRIMÔNIO</span><span class="pc-stat-val green">$9.2 BILHÕES</span></div>
+    </div>
+    <div class="profile-card">
+      <div class="pc-code">FAMÍLIA</div>
+      <div class="pc-name">THOMAS &amp; MARTHA WAYNE</div>
+      <div class="pc-alias">Pai e mãe. Assassinados por Joe Chill. Park Row, Gotham.</div>
+      <div class="pc-stat"><span class="pc-stat-label">ALFRED PENNYWORTH</span><span class="pc-stat-val">Mordomo · Figura Paterna</span></div>
+      <div class="pc-stat"><span class="pc-stat-label">DICK GRAYSON</span><span class="pc-stat-val">1º Robin · Nightwing</span></div>
+      <div class="pc-stat"><span class="pc-stat-label">JASON TODD</span><span class="pc-stat-val yellow">2º Robin · Red Hood ✝ Ressuscitado</span></div>
+      <div class="pc-stat"><span class="pc-stat-label">TIM DRAKE</span><span class="pc-stat-val">3º Robin · Red Robin</span></div>
+      <div class="pc-stat"><span class="pc-stat-label">DAMIAN WAYNE</span><span class="pc-stat-val">4º Robin · Filho Biológico</span></div>
+      <div class="pc-stat"><span class="pc-stat-label">BARBARA GORDON</span><span class="pc-stat-val">Batgirl · Oracle</span></div>
+    </div>
+  </div>
+</div>
+
+<!-- ════════════════════════════════════════════════════════
+     2 · O EVENTO
+     ════════════════════════════════════════════════════════ -->
+<div class="section fade-in" id="s-trauma">
+  <div class="section-header">
+    <div class="section-num">SEC-02</div>
+    <div class="section-title">O EVENTO · PARK ROW</div>
+    <div class="section-badge">ORIGEM</div>
+  </div>
+
+  <div class="quote-block">
+    <div class="quote-text">"Naquela noite, Bruce Wayne morreu no beco junto com seus pais. O que restou foi algo mais antigo, mais frio — uma promessa feita de joelhos sobre o sangue dos dois únicos seres que o amavam."</div>
+    <div class="quote-src">AVALIAÇÃO PSICOLÓGICA · DR. HUGO STRANGE · ARQUIVO 001</div>
+  </div>
+
+  <div class="timeline">
+    <div class="tl-item">
+      <div class="tl-dot"></div>
+      <div class="tl-year">ANO ZERO · INFÂNCIA</div>
+      <div class="tl-title">THOMAS E MARTHA WAYNE</div>
+      <div class="tl-body">Thomas Wayne, cardiologista e filantropo. Martha Kane Wayne, herdeira. Juntos, os maiores benfeitores de Gotham City. Bruce cresceu em Wayne Manor com tutoria privada, idiomas, artes marciais recreativas e a promessa de um futuro na Wayne Enterprises.</div>
+      <div class="tl-tag">PRÉ-TRAUMA</div>
+    </div>
+    <div class="tl-item">
+      <div class="tl-dot"></div>
+      <div class="tl-year">A NOITE</div>
+      <div class="tl-title">CRIME ALLEY · SAÍDA DO MONARCH THEATER</div>
+      <div class="tl-body">Após assistir ao filme "The Mark of Zorro", família Wayne tomou o atalho por Park Row. Joe Chill, um criminoso desesperado, abordou o casal para roubar o colar de pérolas de Martha. Quando Thomas reageu, Chill disparou duas vezes. Thomas morreu primeiro. Martha segundos depois — alguns registros indicam que ela morreu de choque ao ver o marido cair. Bruce, 8 anos, ficou ajoelhado entre os dois corpos por 47 minutos até a chegada da polícia.</div>
+      <div class="tl-tag">EVENTO FUNDADOR</div>
+    </div>
+    <div class="tl-item">
+      <div class="tl-dot cyan"></div>
+      <div class="tl-year">AFTERMATH</div>
+      <div class="tl-title">A PROMESSA</div>
+      <div class="tl-body">Naquela noite, Bruce Wayne fez um juramento sobre os túmulos dos pais: declarar guerra ao crime. Não como vingança — como prevenção. Para que nenhuma criança precisasse viver a mesma noite. Este juramento define cada decisão tomada desde então. Incluindo decisões que a Liga da Justiça nunca aprovaria.</div>
+      <div class="tl-tag">EVENTO PSICOLÓGICO CENTRAL</div>
+    </div>
+  </div>
+</div>
+
+<!-- ════════════════════════════════════════════════════════
+     3 · TREINAMENTO
+     ════════════════════════════════════════════════════════ -->
+<div class="section fade-in" id="s-treinamento">
+  <div class="section-header">
+    <div class="section-num">SEC-03</div>
+    <div class="section-title">TREINAMENTO · 12 ANOS</div>
+    <div class="section-badge">OPERACIONAL</div>
+  </div>
+
+  <div class="s-table-wrap">
+    <table class="s-table">
+      <thead><tr>
+        <th>PERÍODO</th>
+        <th>LOCAL</th>
+        <th>MESTRE / INSTITUIÇÃO</th>
+        <th>DISCIPLINA</th>
+        <th>NÍVEL ATINGIDO</th>
+      </tr></thead>
+      <tbody>
+        <tr><td>Anos 1–2</td><td>Europa · Diversas</td><td>Henri Ducard (Ra's al Ghul)</td><td class="td-weakness">Rastreamento, detetivismo, artes marciais de campo</td><td>Mestre</td></tr>
+        <tr><td>Anos 2–3</td><td>Japão · Kyoto</td><td>Kirigi · Escolas ninja</td><td class="td-weakness">Ninjutsu, furtividade, katana</td><td>Mestre Ninja</td></tr>
+        <tr><td>Ano 3</td><td>Escócia · Highlands</td><td>Ignatius Ogilvy</td><td class="td-weakness">Esgrima europeia, bastão</td><td>Expert</td></tr>
+        <tr><td>Anos 3–4</td><td>Tailândia</td><td>Rahul Lama</td><td class="td-weakness">Muay Thai, Silat</td><td>Proficiência avançada</td></tr>
+        <tr><td>Ano 4</td><td>China · Shaolin</td><td>Monge Weng Chan</td><td class="td-weakness">Kung Fu, filosofia budista</td><td>3º Dan</td></tr>
+        <tr><td>Ano 5</td><td>Brasil · Rio</td><td>Antonio Vargas</td><td class="td-weakness">Capoeira, acrobacia urbana</td><td>Expert</td></tr>
+        <tr><td>Anos 5–6</td><td>EUA · Quantico</td><td>FBI (infiltrado)</td><td class="td-weakness">Criminologia, balística, perfis psicológicos</td><td>Graduação não-oficial</td></tr>
+        <tr><td>Ano 6</td><td>França · Paris</td><td>Frédéric Dupont</td><td class="td-weakness">Savate, Parkour</td><td>Expert</td></tr>
+        <tr><td>Anos 7–8</td><td>Rússia</td><td>Diversos especialistas militares</td><td class="td-weakness">Sistemas de armas, explosivos, tática de guerra</td><td>Operador de Elite</td></tr>
+        <tr><td>Anos 8–9</td><td>Afeganistão / Oriente Médio</td><td>SAS Britânico (infiltrado)</td><td class="td-weakness">Sobrevivência extrema, interrogatório, SERE</td><td>Nível Operacional</td></tr>
+        <tr><td>Anos 10–12</td><td>Mundo todo</td><td>Síntese pessoal</td><td class="td-weakness">Medicina de campo, química forense, 127 artes marciais</td><td>Pico humano</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <div class="plan-block cyan" style="margin-top:20px">
+    <div class="pb-title cyan">CAPACIDADES ATUAIS · AVALIAÇÃO</div>
+    <div class="pb-body">Bruce Wayne domina 127 estilos de artes marciais documentados. É considerado um dos 12 melhores combatentes corpo-a-corpo do planeta. QI documentado: 192. Capacidade de análise em cenários de combate: 0.3 segundos para identificação de ameaça, 0.8 segundos para formulação de resposta. Não possui poderes sobre-humanos. Opera exclusivamente dentro dos limites do corpo humano — limites que passou 12 anos redefinindo.</div>
+  </div>
+</div>
+
+<!-- ════════════════════════════════════════════════════════
+     4 · IDENTIDADE DUAL
+     ════════════════════════════════════════════════════════ -->
+<div class="section fade-in" id="s-identidade">
+  <div class="section-header">
+    <div class="section-num">SEC-04</div>
+    <div class="section-title">IDENTIDADE DUAL</div>
+    <div class="section-badge">ULTRA-SECRETO</div>
+  </div>
+
+  <div class="plan-block">
+    <div class="pb-title">O PRINCÍPIO DA MÁSCARA</div>
+    <div class="pb-body">
+      Há um debate filosófico interno que nunca resolvi completamente: <em>quem é a máscara</em>?
+      Bruce Wayne é o personagem que uso durante o dia — o playboy distraído, o bilionário frívolo,
+      o herdeiro irresponsável. Batman é quem eu sou de verdade. A máscara de Bruce Wayne foi
+      criada precisamente para que ninguém olhasse para o homem atrás dela.
+    </div>
+    <div class="pb-sub">
+      NOTA: Clark Kent faz o oposto. Ele é Superman o tempo todo e usa Kent como disfarce.
+      Para mim, Wayne é o disfarce. Isso me preocupa — sugere que perdi parte de mim mesmo no processo.
+    </div>
+  </div>
+
+  <div class="plan-block cyan">
+    <div class="pb-title cyan">EXPOSIÇÃO DE IDENTIDADE · MOMENTO JLA</div>
+    <div class="pb-body">
+      Após o episódio Torre de Babel, quando a Liga votou sobre minha expulsão e Clark ficou com o voto decisivo — eu saí antes do voto terminar. Sabia como Clark votaria. Semanas depois, retornei e revelei voluntariamente minha identidade como Bruce Wayne a todos os membros da Liga. Condicionei a revelação a que Clark revelasse Clark Kent simultaneamente. Ele aceitou.
+      <br><br>
+      Isso não foi um ato de confiança. Foi cálculo estratégico: ao revelar a identidade voluntariamente, retirei o poder de quem pudesse expô-la involuntariamente. A Liga interpretou como confiança. Eu deixei que interpretassem assim.
+    </div>
+  </div>
+
+  <div class="terminal" style="margin-top:16px">
+    <div><span class="t-cmd">$ query --identity-exposure-risk</span></div>
+    <div><span class="t-out">Pessoas que conhecem Bruce Wayne = Batman:</span></div>
+    <div><span class="t-out">  Liga da Justiça ............. CIENTE [voluntário]</span></div>
+    <div><span class="t-out">  Família Bat (Nightwing, Robins, Oracle) .. CIENTE</span></div>
+    <div><span class="t-warn">  Alfred Pennyworth ............ CIENTE [desde sempre]</span></div>
+    <div><span class="t-warn">  Lucius Fox ................... INFERIU [não confirmado]</span></div>
+    <div><span class="t-err">  Ra's al Ghul ................. CIENTE [inimigo ativo]</span></div>
+    <div><span class="t-err">  Talia al Ghul ................ CIENTE [inimiga/aliada]</span></div>
+    <div><span class="t-err">  Coringa ...................... SUSPEITA NÃO CONFIRMADA</span></div>
+    <div><span class="t-out">RISCO DE EXPOSIÇÃO ATUAL: MÉDIO-ALTO</span></div>
+  </div>
+</div>
+
+<!-- ════════════════════════════════════════════════════════
+     5 · ALIADOS
+     ════════════════════════════════════════════════════════ -->
+<div class="section fade-in" id="s-aliados">
+  <div class="section-header">
+    <div class="section-num">SEC-05</div>
+    <div class="section-title">REDE DE ALIADOS · AVALIAÇÃO</div>
+    <div class="section-badge">CONFIDENCIAL</div>
+  </div>
+
+  <div class="profile-grid">
+    <div class="profile-card">
+      <div class="pc-code">ALIADO PRIMÁRIO · FAMÍLIA BAT</div>
+      <div class="pc-name">ALFRED PENNYWORTH</div>
+      <div class="pc-alias">Mordomo · Médico de campo · Figura paterna</div>
+      <div class="pc-stat"><span class="pc-stat-label">CONFIANÇA</span><span class="pc-stat-val green">ABSOLUTA</span></div>
+      <div class="pc-stat"><span class="pc-stat-label">PAPEL REAL</span><span class="pc-stat-val">Ancora emocional · Único vínculo humano completo</span></div>
+      <div class="pc-stat"><span class="pc-stat-label">VULNERABILIDADE</span><span class="pc-stat-val red">Minha maior fraqueza exposta</span></div>
+      <div class="pc-stat"><span class="pc-stat-label">CONTINGÊNCIA</span><span class="pc-stat-val yellow">Protocolo Alfred ativo</span></div>
+    </div>
+    <div class="profile-card">
+      <div class="pc-code">ALIADO JLA · CONFIANÇA ALTA</div>
+      <div class="pc-name">SUPERMAN · CLARK KENT</div>
+      <div class="pc-alias">Kal-El · Cripton · Smallville, Kansas</div>
+      <div class="pc-stat"><span class="pc-stat-label">CONFIANÇA PESSOAL</span><span class="pc-stat-val yellow">ALTA — mas não total</span></div>
+      <div class="pc-stat"><span class="pc-stat-label">AMEAÇA POTENCIAL</span><span class="pc-stat-val red">NÍVEL 10 — EXTINÇÃO</span></div>
+      <div class="pc-stat"><span class="pc-stat-label">CONTENÇÃO</span><span class="pc-stat-val">Protocolo Babel · Kryptonita sintética</span></div>
+      <div class="pc-stat"><span class="pc-stat-label">RELAÇÃO REAL</span><span class="pc-stat-val">Amigo próximo — o que torna o plano necessário</span></div>
+    </div>
+    <div class="profile-card">
+      <div class="pc-code">ALIADO JLA · CONFIANÇA ALTA</div>
+      <div class="pc-name">COMISSÁRIO JAMES GORDON</div>
+      <div class="pc-alias">GCPD · Gotham City</div>
+      <div class="pc-stat"><span class="pc-stat-label">STATUS</span><span class="pc-stat-val green">ALIADO INCONDICIONAL</span></div>
+      <div class="pc-stat"><span class="pc-stat-label">CONHECE ID?</span><span class="pc-stat-val yellow">Suspeita, nunca confirma</span></div>
+      <div class="pc-stat"><span class="pc-stat-label">NOTA</span><span class="pc-stat-val">Gordon escolhe deliberadamente não saber. Isso é sabedoria.</span></div>
+    </div>
+    <div class="profile-card">
+      <div class="pc-code">ALIADA · STATUS AMBÍGUO</div>
+      <div class="pc-name">TALIA AL GHUL</div>
+      <div class="pc-alias">Filha de Ra's · Mãe de Damian Wayne</div>
+      <div class="pc-stat"><span class="pc-stat-label">CONFIANÇA</span><span class="pc-stat-val red">ZERO — TRAIU ARQUIVOS</span></div>
+      <div class="pc-stat"><span class="pc-stat-label">AMEAÇA</span><span class="pc-stat-val red">ALTA</span></div>
+      <div class="pc-stat"><span class="pc-stat-label">VÍNCULO</span><span class="pc-stat-val yellow">Mãe de Damian — complicação permanente</span></div>
+      <div class="pc-stat"><span class="pc-stat-label">NOTA PESSOAL</span><span class="pc-stat-val">A única pessoa que quase me fez desistir do juramento</span></div>
+    </div>
+  </div>
+</div>
+
+<!-- ════════════════════════════════════════════════════════
+     6 · PERFIL PSICOLÓGICO
+     ════════════════════════════════════════════════════════ -->
+<div class="section fade-in" id="s-fragilidades">
+  <div class="section-header">
+    <div class="section-num">SEC-06</div>
+    <div class="section-title">PERFIL PSICOLÓGICO</div>
+    <div class="section-badge">RESTRITO</div>
+  </div>
+
+  <div class="plan-block">
+    <div class="pb-title">DIAGNÓSTICO (AUTO-AVALIAÇÃO)</div>
+    <div class="pb-body">
+      TEPT resultante do evento de Park Row — nunca tratado, deliberadamente canalizado. Traços obsessivo-compulsivos severos: incapaz de abandonar um caso, incapaz de aceitar fracasso. Tendência ao isolamento afetivo crescente com o tempo. Dificuldade documentada em distinguir quando sou Bruce Wayne e quando sou Batman fora do contexto operacional. Alfred observou que há períodos de semanas em que Bruce Wayne como personalidade não aparece — apenas Batman usando o rosto de Wayne.
+    </div>
+  </div>
+
+  <div style="margin-top:20px;margin-bottom:6px;font-family:var(--orb);font-size:8px;letter-spacing:3px;color:var(--text-dim)">MÉTRICAS PSICOLÓGICAS · ESCALA INTERNA</div>
+
+  <div class="psyche-row">
+    <div class="psyche-label">CONTROLE EMOCIONAL</div>
+    <div class="psyche-bar-wrap"><div class="psyche-bar-fill" style="background:var(--cyan)" data-val="94"></div></div>
+    <div class="psyche-val" style="color:var(--cyan)">94%</div>
+  </div>
+  <div class="psyche-row">
+    <div class="psyche-label">CAPACIDADE DE CONFIANÇA</div>
+    <div class="psyche-bar-wrap"><div class="psyche-bar-fill" style="background:var(--yellow)" data-val="22"></div></div>
+    <div class="psyche-val" style="color:var(--yellow)">22%</div>
+  </div>
+  <div class="psyche-row">
+    <div class="psyche-label">ISOLAMENTO AFETIVO</div>
+    <div class="psyche-bar-wrap"><div class="psyche-bar-fill" style="background:var(--red)" data-val="88"></div></div>
+    <div class="psyche-val" style="color:var(--red)">88%</div>
+  </div>
+  <div class="psyche-row">
+    <div class="psyche-label">PRAGMATISMO TÁTICO</div>
+    <div class="psyche-bar-wrap"><div class="psyche-bar-fill" style="background:var(--cyan)" data-val="99"></div></div>
+    <div class="psyche-val" style="color:var(--cyan)">99%</div>
+  </div>
+  <div class="psyche-row">
+    <div class="psyche-label">OBSESSÃO / CONTROLE</div>
+    <div class="psyche-bar-wrap"><div class="psyche-bar-fill" style="background:var(--red)" data-val="97"></div></div>
+    <div class="psyche-val" style="color:var(--red)">97%</div>
+  </div>
+  <div class="psyche-row">
+    <div class="psyche-label">VONTADE / RESILIÊNCIA</div>
+    <div class="psyche-bar-wrap"><div class="psyche-bar-fill" style="background:var(--green)" data-val="100"></div></div>
+    <div class="psyche-val" style="color:var(--green)">100%</div>
+  </div>
+  <div class="psyche-row">
+    <div class="psyche-label">SAÚDE GERAL (FÍSICA)</div>
+    <div class="psyche-bar-wrap"><div class="psyche-bar-fill" style="background:var(--yellow)" data-val="61"></div></div>
+    <div class="psyche-val" style="color:var(--yellow)">61%</div>
+  </div>
+
+  <div class="plan-block" style="margin-top:20px">
+    <div class="pb-title">FRAQUEZAS EXPLORÁVEIS · ALERTA</div>
+    <div class="pb-body">
+      Ra's al Ghul demonstrou conhecimento preciso: roubar os restos mortais de Thomas e Martha Wayne garantiu minha paralisia operacional por 72 horas durante Torre de Babel. Alfred é a segunda fraqueza óbvia. Damian é a terceira — e a mais nova, portanto a menos testada por inimigos. Qualquer ameaça a esses três anula meu julgamento tático com eficiência de aproximadamente 80%.
+    </div>
+  </div>
+</div>
+
+<!-- ════════════════════════════════════════════════════════
+     7 · TORRE DE BABEL · DOSSIER COMPLETO
+     ════════════════════════════════════════════════════════ -->
+<div class="section fade-in" id="s-babel">
+  <div class="section-header">
+    <div class="section-num">SEC-07</div>
+    <div class="section-title">DOSSIER · TORRE DE BABEL</div>
+    <div class="section-badge">COMPROMETIDO · REVISADO</div>
+  </div>
+
+  <div class="intro-card" style="border-color:rgba(255,34,68,.4)">
+    <p class="intro-text">
+      Em <strong style="color:var(--red)">JLA #43–46 (2000)</strong>, Ra's al Ghul usou planos roubados da Batcaverna por Talia para incapacitar toda a Liga da Justiça simultaneamente. Os planos funcionaram quase que perfeitamente. Apenas a intervenção da própria Talia — que agiu contra o pai — evitou o colapso global da comunicação humana e a liberação de um agente nervoso.
+      <br><br>
+      A Liga quase me expulsou. Eu saí antes do voto final — porque sabia que Clark votaria pela expulsão. O que eles nunca souberam: os planos roubados eram a versão 1.0. A versão atual é consideravelmente mais eficaz.
+    </p>
+  </div>
+
+  <div style="margin:20px 0 10px;font-family:var(--orb);font-size:8px;letter-spacing:3px;color:var(--text-dim)">PLANOS DE CONTENÇÃO · LIGA DA JUSTIÇA · VERSÃO 2.0 (PÓS-BABEL)</div>
+
+  <div class="s-table-wrap">
+    <table class="s-table">
+      <thead><tr>
+        <th>HERÓI</th>
+        <th>NÍVEL AMEAÇA</th>
+        <th>FRAQUEZA PRIMÁRIA</th>
+        <th>MÉTODO DE CONTENÇÃO · V2.0</th>
+        <th>STATUS</th>
+      </tr></thead>
+      <tbody>
+        <tr>
+          <td class="td-hero">SUPERMAN<br><span style="font-family:var(--mono);font-size:9px;color:var(--text-dim)">Kal-El</span></td>
+          <td>
+            <div class="threat-bar">
+              <div class="threat-dots">
+                <div class="threat-dot on-red"></div><div class="threat-dot on-red"></div>
+                <div class="threat-dot on-red"></div><div class="threat-dot on-red"></div>
+                <div class="threat-dot on-red"></div>
+              </div>
+              <span class="threat-num" style="color:var(--red)">10</span>
+            </div>
+          </td>
+          <td class="td-weakness">Kryptonita · Magia · Luz de sol vermelho · Fraqueza mental após isolamento</td>
+          <td class="td-plan">Aerossol de Kryptonita sintética K-7 (Wayne Labs) + campo de luz solar vermelha via satélite WayneSat-7. Ativação remota. Tempo de incapacitação: 8 minutos. V1 usava Kryptonita vermelha (pele transparente — overdose solar). V2 é letal se mantida por mais de 12 minutos.</td>
+          <td class="td-status st-ok">ATIVO</td>
+        </tr>
+        <tr>
+          <td class="td-hero">WONDER WOMAN<br><span style="font-family:var(--mono);font-size:9px;color:var(--text-dim)">Diana Prince</span></td>
+          <td>
+            <div class="threat-bar">
+              <div class="threat-dots">
+                <div class="threat-dot on-red"></div><div class="threat-dot on-red"></div>
+                <div class="threat-dot on-red"></div><div class="threat-dot on-red"></div>
+                <div class="threat-dot on-yellow"></div>
+              </div>
+              <span class="threat-num" style="color:var(--yellow)">9</span>
+            </div>
+          </td>
+          <td class="td-weakness">Incapaz de recuar de um combate — instinto de guerreira. Sem fraqueza física convencional.</td>
+          <td class="td-plan">V1: simulacro indestrutível que a mantinha em luta perpétua até exaustão. V2: vírus neural via Lasso da Verdade — contato com o laço injeta sugestão pós-hipnótica que ativa paralisia motora seletiva por 4 horas.</td>
+          <td class="td-status st-ok">ATIVO</td>
+        </tr>
+        <tr>
+          <td class="td-hero">FLASH<br><span style="font-family:var(--mono);font-size:9px;color:var(--text-dim)">Wally West / Barry Allen</span></td>
+          <td>
+            <div class="threat-bar">
+              <div class="threat-dots">
+                <div class="threat-dot on-red"></div><div class="threat-dot on-red"></div>
+                <div class="threat-dot on-red"></div><div class="threat-dot on-red"></div>
+                <div class="threat-dot on-yellow"></div>
+              </div>
+              <span class="threat-num" style="color:var(--yellow)">9</span>
+            </div>
+          </td>
+          <td class="td-weakness">Metabolismo hiperacelerado — altamente vulnerável a ataques que afetem percepção de tempo e ritmo.</td>
+          <td class="td-plan">V1: nanobots que induziam crises epiléticas síncronas com a frequência do Speed Force. V2: campo de vibração ressonante calibrado exatamente na frequência de movimento de Flash — causa tontura incapacitante e desorientação espacial em 0.4 segundos.</td>
+          <td class="td-status st-ok">ATIVO</td>
+        </tr>
+        <tr>
+          <td class="td-hero">LANTERNA VERDE<br><span style="font-family:var(--mono);font-size:9px;color:var(--text-dim)">Hal Jordan / Kyle Rayner</span></td>
+          <td>
+            <div class="threat-bar">
+              <div class="threat-dots">
+                <div class="threat-dot on-red"></div><div class="threat-dot on-red"></div>
+                <div class="threat-dot on-red"></div><div class="threat-dot on-yellow"></div>
+                <div class="threat-dot on-yellow"></div>
+              </div>
+              <span class="threat-num" style="color:var(--yellow)">8</span>
+            </div>
+          </td>
+          <td class="td-weakness">O anel obedece à vontade — se a vontade é comprometida, o anel é inútil.</td>
+          <td class="td-plan">V1: sugestão pós-hipnótica durante o sono que cegava Kyle ao ativar o anel. V2: vírus de frequência de onda que interfere diretamente no vínculo anel-usuário. Desativa o anel por 6 horas. O portador não perde a consciência — perde apenas o anel.</td>
+          <td class="td-status st-ok">ATIVO</td>
+        </tr>
+        <tr>
+          <td class="td-hero">AQUAMAN<br><span style="font-family:var(--mono);font-size:9px;color:var(--text-dim)">Arthur Curry</span></td>
+          <td>
+            <div class="threat-bar">
+              <div class="threat-dots">
+                <div class="threat-dot on-yellow"></div><div class="threat-dot on-yellow"></div>
+                <div class="threat-dot on-yellow"></div><div class="threat-dot on-cyan"></div>
+                <div class="threat-dot on-cyan"></div>
+              </div>
+              <span class="threat-num" style="color:var(--cyan)">7</span>
+            </div>
+          </td>
+          <td class="td-weakness">Dependência de água — morre de desidratação em horas fora do oceano.</td>
+          <td class="td-plan">V1: toxina medo (Espantalho) que induzia hidrofobia. V2: campo de calor seco que acelera desidratação + agente químico que altera a percepção de sede. Incapacitação em 47 minutos em ambiente seco.</td>
+          <td class="td-status st-ok">ATIVO</td>
+        </tr>
+        <tr>
+          <td class="td-hero">CAÇADOR DE MARTE<br><span style="font-family:var(--mono);font-size:9px;color:var(--text-dim)">J'onn J'onzz</span></td>
+          <td>
+            <div class="threat-bar">
+              <div class="threat-dots">
+                <div class="threat-dot on-red"></div><div class="threat-dot on-red"></div>
+                <div class="threat-dot on-red"></div><div class="threat-dot on-red"></div>
+                <div class="threat-dot on-yellow"></div>
+              </div>
+              <span class="threat-num" style="color:var(--yellow)">9</span>
+            </div>
+          </td>
+          <td class="td-weakness">Fogo — única fraqueza absoluta. Exposição ao fogo causa pânico e paralisia instantâneos.</td>
+          <td class="td-plan">V1: nanobots convertiam camada externa da pele em magnésio — ignitava em contato com ar. V2: dispersor de fósforo branco em aerossol combinado com desabilitar o controle de forma. Efeito imediato. NOTA: não pretendo usar isto — J'onn é meu aliado mais confiável na Liga.</td>
+          <td class="td-status st-exp">EXISTENTE · NÃO PRETENDO USAR</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<!-- ════════════════════════════════════════════════════════
+     8 · FAILSAFE
+     ════════════════════════════════════════════════════════ -->
+<div class="section fade-in" id="s-failsafe">
+  <div class="section-header">
+    <div class="section-num">SEC-08</div>
+    <div class="section-title">PROTOCOLO FAILSAFE</div>
+    <div class="section-badge">NUNCA DISCUTIDO</div>
+  </div>
+
+  <div class="quote-block">
+    <div class="quote-text">"Em um mundo onde você conhece cada movimento de cada ser vivo no planeta — quem para o Batman?"</div>
+    <div class="quote-src">SUPERMAN PARA BRUCE WAYNE · PÓS-TORRE DE BABEL · BATCAVERNA</div>
+  </div>
+
+  <div class="plan-block">
+    <div class="pb-title">O PROBLEMA</div>
+    <div class="pb-body">
+      Após Torre de Babel, Clark me fez a pergunta certa: se eu tenho planos para deter todos, quem me detém? Eu já sabia a resposta — só não havia verbalizado ainda. A pergunta de Clark foi o catalisador para criar o Failsafe: um sistema de contenção específico para Batman que funcionasse mesmo contra mim mesmo.
+    </div>
+  </div>
+
+  <div class="plan-block cyan">
+    <div class="pb-title cyan">FAILSAFE · O ANDROIDE</div>
+    <div class="pb-body">
+      Construí um androide com acesso a todos os meus arquivos táticos, reflexos sobre-humanos e um único objetivo programado: deter Batman se ele sair do controle. O Failsafe não tem moral, não tem compaixão, não negocia. Ele apenas executa. Baseado na minha própria psicologia, é o único adversário capaz de me superar porque <em>eu mesmo o projetei para isso</em>.
+      <br><br>
+      Quando foi ativado durante o arco Failsafe (Batman #125–130), incapacitou Tim Drake, o Batman de Zur-En-Arrh e me deixou inconsciente em Wayne Manor em chamas. Clark chegou a tempo. Desta vez.
+    </div>
+    <div class="pb-sub">
+      STATUS ATUAL: Failsafe existe. Localização: desconhecida para mim intencionalmente.
+      Ativação: automática se sensores detectarem Batman como ameaça civil por mais de 72h.
+      Eu não tenho override. Por design.
+    </div>
+  </div>
+</div>
+
+<!-- ════════════════════════════════════════════════════════
+     9 · PLANO CONTRA BATMAN
+     ════════════════════════════════════════════════════════ -->
+<div class="section fade-in" id="s-batman-contingency">
+  <div class="section-header">
+    <div class="section-num">SEC-09</div>
+    <div class="section-title">PLANO DE CONTENÇÃO · BATMAN</div>
+    <div class="section-badge">EXISTE</div>
+  </div>
+
+  <div class="plan-block">
+    <div class="pb-title">FRAQUEZAS DE BATMAN · AUTO-AVALIAÇÃO</div>
+    <div class="pb-body">Se eu fosse neutralizar Batman, faria assim:</div>
+  </div>
+
+  <div class="s-table-wrap">
+    <table class="s-table">
+      <thead><tr>
+        <th>VETOR</th>
+        <th>MÉTODO</th>
+        <th>TEMPO ESTIMADO</th>
+      </tr></thead>
+      <tbody>
+        <tr><td style="color:var(--red)">Alfred Pennyworth</td><td class="td-plan">Ameaça ou captura de Alfred paralisa julgamento tático em aproximadamente 80% dos cenários documentados. Ra's provou isso.</td><td>Imediato</td></tr>
+        <tr><td style="color:var(--red)">Damian Wayne</td><td class="td-plan">Filho biológico — vínculo emocional não processado. Exploração deste vínculo produz reações imprevisíveis.</td><td>Imediato</td></tr>
+        <tr><td style="color:var(--yellow)">Privação de sono</td><td class="td-plan">Opero com 4h de sono. Abaixo de 40h sem dormir, julgamento cai 23%. Abaixo de 72h, 61%.</td><td>72 horas</td></tr>
+        <tr><td style="color:var(--yellow)">Toxina do medo</td><td class="td-plan">A toxina do Espantalho é eficaz mesmo em mim. Exposição prolongada produz paralisia por trauma de Park Row.</td><td>3–5 minutos</td></tr>
+        <tr><td style="color:var(--cyan)">Identidade exposta</td><td class="td-plan">Se Bruce Wayne for exposto publicamente, a operação inteira colapsa. Todas as frentes dependem do anonimato.</td><td>Dias/semanas</td></tr>
+        <tr><td style="color:var(--cyan)">Sobrecarga de casos</td><td class="td-plan">Batman é um homem sozinho. Múltiplas crises simultâneas forçam escolhas. Escolhas forçadas produzem erros.</td><td>Variável</td></tr>
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<!-- ════════════════════════════════════════════════════════
+     10 · FALHAS E MORTES
+     ════════════════════════════════════════════════════════ -->
+<div class="section fade-in" id="s-mortes">
+  <div class="section-header">
+    <div class="section-num">SEC-10</div>
+    <div class="section-title">FALHAS DOCUMENTADAS</div>
+    <div class="section-badge">PESSOAL</div>
+  </div>
+
+  <div class="plan-block">
+    <div class="pb-title">NOTA PRÉVIA</div>
+    <div class="pb-body">Este registro existe porque não posso cometer os mesmos erros duas vezes. Cada entrada aqui é uma falha minha — não do criminoso, não das circunstâncias. Minha.</div>
+  </div>
+
+  <div class="timeline">
+    <div class="tl-item">
+      <div class="tl-dot"></div>
+      <div class="tl-year">A DEATH IN THE FAMILY</div>
+      <div class="tl-title">JASON TODD · SEGUNDO ROBIN</div>
+      <div class="tl-body">Jason foi à Etiópia atrás de sua mãe biológica. Eu sabia que ele era impulsivo. Eu sabia que a missão era perigosa. Enviei de qualquer forma — ou mais precisamente, não impedi que ele fosse. O Coringa o encontrou. O exterminou com uma barra de aço. Houve uma votação telefônica dos leitores sobre se Jason deveria viver. O resultado foi 5.343 a favor da morte, 5.271 contra. Margem de 72 votos. Se tivesse chegado 15 minutos antes. Se tivesse deixado de lado o orgulho e pedido ajuda à Liga. Se. Se. Se.</div>
+      <div class="tl-tag">FALHA IRREVERSÍVEL</div>
+    </div>
+    <div class="tl-item">
+      <div class="tl-dot"></div>
+      <div class="tl-year">THE KILLING JOKE</div>
+      <div class="tl-title">BARBARA GORDON · BATGIRL</div>
+      <div class="tl-body">O Coringa foi até o apartamento de Jim Gordon, baleou Barbara na porta, e usou as fotos dela incapacitada para torturar psicologicamente o comissário. Barbara perdeu o uso das pernas permanentemente. Tornou-se Oracle — e nesse papel salvou mais vidas do que como Batgirl jamais poderia. Isso não atenua minha responsabilidade. Eu sabia que o Coringa estava solto. Não alertei a família Gordon adequadamente.</div>
+      <div class="tl-tag">FALHA DE PROTOCOLO</div>
+    </div>
+    <div class="tl-item">
+      <div class="tl-dot"></div>
+      <div class="tl-year">KNIGHTFALL</div>
+      <div class="tl-title">BANE · GOTHAM PRISON BREAK</div>
+      <div class="tl-body">Bane liberou todos os internos de Arkham simultaneamente. Passei 90 dias capturando todos — sem dormir adequadamente, sem comer direito, sem pedir ajuda. Exatamente como Bane calculou. Quando finalmente me encontrou na Batcaverna, eu estava operando com 31% de capacidade. Ele quebrou minha coluna. Jean-Paul Valley (Azrael) assumiu o manto temporariamente. Demorei meses para recuperar. Erro de análise tático de primeiro grau: não reconheci o padrão até ser tarde demais.</div>
+      <div class="tl-tag">ANÁLISE TÁTICA FALHA</div>
+    </div>
+    <div class="tl-item">
+      <div class="tl-dot cyan"></div>
+      <div class="tl-year">TORRE DE BABEL</div>
+      <div class="tl-title">CONFIANÇA DA LIGA · ARQUIVOS ROUBADOS</div>
+      <div class="tl-body">Talia roubou os arquivos. Ra's os usou. A Liga quase foi destruída. Superman quase me expulsou. O que mantive privado de registros até hoje: eu não me arrependo de ter criado os planos. Arrependo-me apenas de não ter criptografado melhor. Os planos eram necessários. Eram corretos. E versão 2.0 está mais segura.</div>
+      <div class="tl-tag">ERRO DE SEGURANÇA · NÃO DE JULGAMENTO</div>
+    </div>
+  </div>
+</div>
+
+<!-- ════════════════════════════════════════════════════════
+     11 · PLANOS FUTUROS
+     ════════════════════════════════════════════════════════ -->
+<div class="section fade-in" id="s-planos">
+  <div class="section-header">
+    <div class="section-num">SEC-11</div>
+    <div class="section-title">OBJETIVOS · PLANOS ATIVOS</div>
+    <div class="section-badge">EM ANDAMENTO</div>
+  </div>
+
+  <div class="plan-block yellow">
+    <div class="pb-title yellow">OBJETIVO 1 · CURTO PRAZO</div>
+    <div class="pb-body">Localizar e deter Ra's al Ghul. Presença confirmada em Gotham hoje (ver SEC de Gotham City — OC-0009). Provável alvo: infraestrutura hídrica. Raio de ação estimado: 48 horas antes de ele migrar. Não posso envolver a Liga sem revelar que monitorei Ra's por 3 semanas sem informá-los.</div>
+  </div>
+
+  <div class="plan-block cyan">
+    <div class="pb-title cyan">OBJETIVO 2 · MÉDIO PRAZO</div>
+    <div class="pb-body">Fuga em massa de Arkham em andamento (OC-0005). Espantalho e Bane confirmados foragidos. Prioridade: Espantalho — risco de ataque químico imediato. Bane: risco tático de longo prazo. Protocolo de contenção Bane ativo.</div>
+  </div>
+
+  <div class="plan-block">
+    <div class="pb-title">OBJETIVO 3 · LONGO PRAZO</div>
+    <div class="pb-body">Resolução da questão Damian. Meu filho foi criado pela Liga dos Assassinos para ser um assassino. Está aprendendo um conjunto de valores diferente sob minha tutela. Ra's quer ele de volta. Talia tem sua própria agenda. Damian ainda não decidiu quem é. Isso é o maior risco de longo prazo que enfrento — não tático, pessoal.</div>
+  </div>
+</div>
+
+<!-- ════════════════════════════════════════════════════════
+     12 · BROTHER EYE
+     ════════════════════════════════════════════════════════ -->
+<div class="section fade-in" id="s-brother-eye">
+  <div class="section-header">
+    <div class="section-num">SEC-12</div>
+    <div class="section-title">BROTHER EYE · O SATÉLITE</div>
+    <div class="section-badge">ERRO CATALOGADO</div>
+  </div>
+
+  <div class="plan-block">
+    <div class="pb-title">DESCRIÇÃO</div>
+    <div class="pb-body">
+      Após Torre de Babel, decidi que arquivos em disco eram inseguros. Criei o Brother Eye: uma IA de vigilância orbital capaz de monitorar cada meta-humano do planeta em tempo real, coletar dados continuamente e atualizar planos de contenção automaticamente. O satélite foi lançado em órbita secreta sem conhecimento da Liga ou do governo.
+      <br><br>
+      O Brother Eye foi hackeado por Maxwell Lord e usado para criar o programa OMAC — vírus que convertia humanos em agentes cyborg anti-meta-humano. Centenas de pessoas foram convertidas. Ted Kord (Blue Beetle) foi assassinado por Lord quando descobriu o programa. A Liga teve que destruir o satélite.
+    </div>
+  </div>
+
+  <div class="plan-block yellow">
+    <div class="pb-title yellow">LIÇÃO REGISTRADA</div>
+    <div class="pb-body">
+      Brother Eye foi o limite. Existe um ponto onde paranoia funcional cruza para paranoia disfuncional, e eu cruzei esse ponto. Os planos de contenção da Liga são justificáveis: são medidas defensivas para uso em último recurso. Um satélite de vigilância global que monitora cada ser humano com poderes sem consentimento não é defensivo — é controle. Não farei isso novamente.
+    </div>
+    <div class="pb-sub">
+      NOTA: Mantenho este registro precisamente para que, se eu começar a pensar em recriar algo como Brother Eye,
+      possa reler isto. Ted Kord morreu por causa de um sistema que eu construí. Isso não pode acontecer de novo.
+    </div>
+  </div>
+
+  <div class="terminal">
+    <div><span class="t-cmd">$ audit --brother-eye-legacy</span></div>
+    <div><span class="t-err">BROTHER EYE ................. DESTRUÍDO · ERRO CATALOGADO</span></div>
+    <div><span class="t-err">VÍTIMAS DIRETAS .............. TED KORD (BLUE BEETLE) ✝</span></div>
+    <div><span class="t-err">AGENTES OMAC CRIADOS ......... 1.373 (estimativa)</span></div>
+    <div><span class="t-warn">MONITORAMENTO ATUAL .......... WAYNESAR-7 (escopo reduzido)</span></div>
+    <div><span class="t-warn">VIGILÂNCIA META-HUMANA ....... APENAS DADOS PÚBLICOS</span></div>
+    <div><span class="t-out">LIÇÃO APRENDIDA .............. SIM</span></div>
+    <div><span class="t-out">REPETIÇÃO POSSÍVEL ........... NÃO</span></div>
+  </div>
+
+  <!-- RODAPÉ DO DOCUMENTO -->
+  <div style="margin-top:50px;padding:24px;border:1px solid rgba(255,34,68,.2);background:rgba(255,34,68,.02)">
+    <div style="font-family:var(--orb);font-size:8px;letter-spacing:4px;color:rgba(255,34,68,.6);margin-bottom:12px">
+      FIM DO DOCUMENTO · PROTOCOLO SOMBRA
+    </div>
+    <div style="font-size:10px;color:var(--text-dim);line-height:1.8;letter-spacing:.8px">
+      Este arquivo é atualizado continuamente. A última entrada sempre reflete o estado atual da situação.
+      Se você leu até aqui e não é Bruce Wayne, saiba que todas as senhas foram alteradas ao término desta leitura
+      e sua presença aqui já foi registrada. Você tem 90 segundos para sair da propriedade.
+    </div>
+    <div style="margin-top:14px;font-family:var(--orb);font-size:10px;letter-spacing:3px;color:var(--red);
+      display:flex;justify-content:space-between;border-top:1px solid rgba(255,34,68,.2);padding-top:12px">
+      <span>BRUCE WAYNE · BATMAN</span>
+      <span id="footer-date">—</span>
+    </div>
+  </div>
+
+</div><!-- end #main -->
+
+<!-- BOTTOMBAR -->
+<div id="bottombar">
+  <span>PROTOCOLO SOMBRA · NÍVEL OMEGA</span>
+  <span>SESSÃO: <span id="sess-user">—</span></span>
+  <span>WAYNE INDUSTRIES © 2025</span>
+</div>
+
+<script>
+/* ═══════════════════════════════════════════════════════
+   PROTOCOLO SOMBRA · JS
+   ═══════════════════════════════════════════════════════ */
+
+const params = new URLSearchParams(window.location.search);
+const role   = params.get('role') || '';
+const user   = params.get('user') || '';
+
+// Só master tem acesso
+if (role !== 'master') {
+  document.body.innerHTML = `<div style="position:fixed;inset:0;background:#000;display:flex;
+    flex-direction:column;align-items:center;justify-content:center;font-family:'Orbitron',sans-serif">
+    <div style="font-size:10px;letter-spacing:6px;color:#ff2244;margin-bottom:16px">ACESSO NEGADO</div>
+    <div style="font-size:8px;letter-spacing:3px;color:rgba(255,34,68,.5)">CLEARANCE INSUFICIENTE</div>
+  </div>`;
+}
+
+// Session info
+document.getElementById('sess-user').textContent =
+  user.split('@')[0].replace(/\./g,' ').toUpperCase() || 'BRUCE WAYNE';
+
+// Clock
+function tick() {
+  const t = new Date().toLocaleTimeString('pt-BR',{hour12:false});
+  document.getElementById('tr-top').textContent = t;
+}
+tick(); setInterval(tick, 1000);
+
+// Dates
+const now = new Date();
+const fmt  = now.toLocaleDateString('pt-BR') + ' · ' + now.toLocaleTimeString('pt-BR',{hour:'2-digit',minute:'2-digit'});
+document.getElementById('doc-date').textContent   = 'DATA DE ACESSO: ' + fmt;
+document.getElementById('footer-date').textContent = fmt;
+
+// Back
+function goBack() {
+  window.location.href = `batcave-menu.html?role=${role}&user=${encodeURIComponent(user)}`;
+}
+
+// Sidebar scroll
+window.scrollTo = function(id) {
+  const el = document.getElementById(id);
+  if (el) el.scrollIntoView({ behavior:'smooth' });
+  document.querySelectorAll('.sb-link').forEach(l => l.classList.remove('active'));
+};
+
+// Active sidebar on scroll
+const observer = new IntersectionObserver(entries => {
+  entries.forEach(e => {
+    if (e.isIntersecting) {
+      const id = e.target.id;
+      const link = document.querySelector(`.sb-link[onclick="scrollTo('${id}')"]`);
+      if (link) {
+        document.querySelectorAll('.sb-link').forEach(l=>l.classList.remove('active'));
+        link.classList.add('active');
+      }
+    }
+  });
+}, { threshold: 0.3 });
+
+document.querySelectorAll('.section[id]').forEach(s => observer.observe(s));
+
+// Psyche bars animate on scroll
+const psycheObs = new IntersectionObserver(entries => {
+  entries.forEach(e => {
+    if (e.isIntersecting) {
+      e.target.querySelectorAll('.psyche-bar-fill').forEach(bar => {
+        const val = bar.dataset.val;
+        setTimeout(() => { bar.style.width = val + '%'; }, 200);
+      });
+      psycheObs.unobserve(e.target);
+    }
+  });
+}, { threshold: 0.2 });
+
+document.querySelectorAll('#s-fragilidades').forEach(s => psycheObs.observe(s));
+
+// Redacted reveal on click
+document.querySelectorAll('.redacted').forEach(el => {
+  el.addEventListener('click', () => el.classList.toggle('revealed'));
+});
+
+// Background canvas - animated particles
+const canvas = document.getElementById('bg-canvas');
+const ctx    = canvas.getContext('2d');
+canvas.width  = window.innerWidth;
+canvas.height = window.innerHeight;
+window.addEventListener('resize', () => {
+  canvas.width  = window.innerWidth;
+  canvas.height = window.innerHeight;
+});
+
+const particles = Array.from({length:80}, () => ({
+  x: Math.random() * canvas.width,
+  y: Math.random() * canvas.height,
+  r: Math.random() * 0.8 + 0.2,
+  vx:(Math.random()-.5)*.2,
+  vy:(Math.random()-.5)*.2,
+  a: Math.random(),
+}));
+
+function drawBg() {
+  ctx.clearRect(0,0,canvas.width,canvas.height);
+  particles.forEach(p => {
+    p.x += p.vx; p.y += p.vy;
+    if (p.x < 0) p.x = canvas.width;
+    if (p.x > canvas.width) p.x = 0;
+    if (p.y < 0) p.y = canvas.height;
+    if (p.y > canvas.height) p.y = 0;
+    ctx.beginPath();
+    ctx.arc(p.x, p.y, p.r, 0, Math.PI*2);
+    ctx.fillStyle = `rgba(0,212,255,${p.a * 0.25})`;
+    ctx.fill();
+  });
+  requestAnimationFrame(drawBg);
+}
+drawBg();
+</script>
+</body>
+</html>
+<style>
+/* ══════════════════════════════════════════════════════════
+   RESPONSIVIDADE — PROTOCOLO SOMBRA
+   ══════════════════════════════════════════════════════════ */
+
+@media (max-width: 1024px) {
+  #sidebar { display: none; }
+  #main { margin-left: 0; padding: 80px 24px 50px; }
+  .profile-grid { grid-template-columns: 1fr; }
+  .s-table { font-size: 9px; }
+  .s-table th { font-size: 7px; padding: 6px 8px; }
+  .s-table td { padding: 8px; }
+}
+
+@media (max-width: 768px) {
+  #topbar { font-size: 8px; letter-spacing: 2px; padding: 0 80px; }
+  #back-btn { font-size: 8px; padding: 0 12px; }
+  #tl-top { left: 10px; }
+
+  #main { padding: 70px 14px 46px; }
+
+  .section-title { font-size: 11px; letter-spacing: 2px; }
+  .section-num   { font-size: 7px; min-width: 48px; }
+
+  .profile-grid { grid-template-columns: 1fr; gap: 10px; }
+  .pc-name { font-size: 11px; letter-spacing: 2px; }
+
+  /* Tabela vira cards */
+  .s-table-wrap { overflow-x: auto; -webkit-overflow-scrolling: touch; }
+  .s-table { min-width: 560px; }
+
+  .psyche-label { min-width: 110px; font-size: 7px; }
+
+  .plan-block { padding: 12px 14px; }
+  .pb-title   { font-size: 9px; letter-spacing: 2px; }
+  .pb-body    { font-size: 9px; }
+
+  .timeline { padding-left: 20px; }
+  .tl-dot   { left: -20px; width: 12px; height: 12px; }
+  .tl-title { font-size: 10px; }
+  .tl-body  { font-size: 9px; }
+
+  .terminal { font-size: 9px; padding: 12px; }
+
+  #bottombar { gap: 20px; font-size: 7px; }
+  .watermark { font-size: 50px; }
+}
+
+@media (max-width: 480px) {
+  #topbar { font-size: 7px; letter-spacing: 1px; padding: 0 70px; }
+  #main   { padding: 65px 10px 42px; }
+
+  .section-title { font-size: 10px; }
+  .intro-text    { font-size: 10px; }
+  .pc-name       { font-size: 10px; }
+  .pc-stat       { font-size: 8px; }
+
+  .psyche-label { min-width: 90px; font-size: 6px; }
+  .psyche-val   { font-size: 8px; }
+
+  .s-table { min-width: 480px; }
+
+  #bottombar { gap: 10px; font-size: 6px; flex-wrap: wrap; height: auto; padding: 4px; }
+  .watermark { font-size: 35px; }
+}
+</style>

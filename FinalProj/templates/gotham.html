@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Wayne Industries — Gotham City</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;600;700;900&family=Share+Tech+Mono&family=Rajdhani:wght@300;400;500;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/static/css/arsenal.css">
+  <link rel="stylesheet" href="/static/css/batcaverna.css">
+  <link rel="stylesheet" href="/static/css/gotham.css">
+</head>
+<body>
+
+<div class="cave-bg"></div>
+<div class="grid-overlay"></div>
+<div class="scanlines"></div>
+<div class="scan-beam"></div>
+<div class="corner tl"></div><div class="corner tr"></div>
+<div class="corner bl"></div><div class="corner br"></div>
+
+<div class="status-bar">WAYNE INDUSTRIES · BAT-COMPUTADOR</div>
+<div class="status-left"><div class="status-dot"></div><span>SYS ONLINE</span></div>
+<div class="status-right" id="clock">00:00:00</div>
+<button class="logout-btn" onclick="goBack()">
+  <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+    <polyline points="15 18 9 12 15 6"/>
+  </svg>
+  VOLTAR
+</button>
+
+<div class="header-zone">
+  <div class="header-welcome">MÓDULO · MOD-005</div>
+  <div class="header-user">GOTHAM CITY</div>
+  <div class="header-clearance" id="header-clearance">CLEARANCE: — · CARREGANDO...</div>
+</div>
+
+<div class="main">
+  <div class="arsenal-container">
+
+    <!-- ABAS -->
+    <div class="tab-bar">
+      <button class="tab-btn active" onclick="switchTab('distritos')"   id="tab-distritos">🏙 DISTRITOS</button>
+      <button class="tab-btn"        onclick="switchTab('ocorrencias')" id="tab-ocorrencias">⚠ OCORRÊNCIAS</button>
+      <button class="tab-btn"        onclick="switchTab('suspeitos')"   id="tab-suspeitos">👁 SUSPEITOS</button>
+      <div class="tab-spacer"></div>
+      <div class="tab-stats">
+        TOTAL <span class="stat-val" id="tab-total">—</span>
+        <span class="stat-sep">·</span>
+        <span id="tab-status-stats"></span>
+      </div>
+    </div>
+
+    <!-- TOOLBAR -->
+    <div class="toolbar">
+      <div class="toolbar-left">
+        <div class="search-wrap">
+          <span class="search-icon">⌕</span>
+          <input type="text" id="busca" class="field-input search-input" placeholder="BUSCAR...">
+        </div>
+        <select id="filtro-status" class="field-input select-input">
+          <option value="">TODOS OS STATUS</option>
+        </select>
+        <select id="filtro-cat" class="field-input select-input">
+          <option value="">TODAS AS CATEGORIAS</option>
+        </select>
+      </div>
+      <div class="toolbar-right">
+        <button class="btn-add" id="btn-add" onclick="openModal()" style="display:none">
+          + NOVO REGISTRO
+        </button>
+      </div>
+    </div>
+
+    <!-- TABELA -->
+    <div class="table-wrap">
+      <table class="arsenal-table">
+        <thead id="table-head"></thead>
+        <tbody id="main-tbody">
+          <tr class="loading-row"><td colspan="9"><span class="loading-text">▸ CARREGANDO...</span></td></tr>
+        </tbody>
+      </table>
+    </div>
+
+  </div>
+</div>
+
+<div class="info-strip">
+  <span>SESSÃO <span class="i-val" id="session-user">—</span></span>
+  <span>MÓDULO <span class="i-val">GOTHAM CITY</span></span>
+  <span>REGISTROS <span class="i-val" id="strip-total">—</span></span>
+  <span>NODE <span class="i-val">BAT-CORE-01</span></span>
+</div>
+<div class="bottom-bar">
+  <span>WAYNE INDUSTRIES © 2025</span>
+  <span>ENCRYPTED · AES-512</span>
+  <span>v4.7.1-DARK</span>
+</div>
+
+<!-- MODAL -->
+<div class="modal-overlay" id="modal-overlay">
+  <div class="modal-panel modal-wide">
+    <div class="c-acc tl"></div><div class="c-acc tr"></div>
+    <div class="c-acc bl"></div><div class="c-acc br"></div>
+    <div class="modal-header">
+      <div class="modal-title" id="modal-title">NOVO REGISTRO</div>
+      <button class="modal-close" onclick="closeModal()">✕</button>
+    </div>
+    <div class="modal-body" id="modal-body"></div>
+    <div class="modal-footer">
+      <button class="btn-cancel" onclick="closeModal()">CANCELAR</button>
+      <button class="btn-save" id="btn-save" onclick="saveItem()">▸ SALVAR</button>
+    </div>
+  </div>
+</div>
+
+<!-- CONFIRMAR -->
+<div class="modal-overlay" id="confirm-overlay">
+  <div class="modal-panel confirm-panel">
+    <div class="c-acc tl"></div><div class="c-acc tr"></div>
+    <div class="c-acc bl"></div><div class="c-acc br"></div>
+    <div class="modal-header">
+      <div class="modal-title" style="color:var(--red)">⚠ CONFIRMAR REMOÇÃO</div>
+    </div>
+    <div class="modal-body">
+      <p class="confirm-text">Remover <strong id="confirm-item-name"></strong>?</p>
+      <p class="confirm-sub">Esta ação não pode ser desfeita.</p>
+    </div>
+    <div class="modal-footer">
+      <button class="btn-cancel" onclick="closeConfirm()">CANCELAR</button>
+      <button class="btn-delete" id="btn-confirm-delete" onclick="confirmDelete()">▸ CONFIRMAR</button>
+    </div>
+  </div>
+</div>
+
+<script src="/static/js/gotham.js"></script>
+</body>
+</html>
