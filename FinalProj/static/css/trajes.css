@@ -1,0 +1,62 @@
+/* ============================================================
+   WAYNE INDUSTRIES — BAT-COMPUTADOR
+   Arquivo: trajes.css
+   Descrição: Estilos específicos da tela de Trajes
+   (complementa arsenal.css)
+   ============================================================ */
+
+.modal-wide { width: 640px; }
+
+/* ── BADGES DE CATEGORIA ───────────────────────────────── */
+
+.badge-cat {
+  display: inline-block; padding: 3px 8px;
+  font-size: 8px; letter-spacing: 2px;
+  font-family: 'Orbitron', sans-serif; font-weight: 700;
+  border: 1px solid; white-space: nowrap;
+}
+.cat-combate     { color: var(--cyan);   border-color: rgba(0,212,255,0.35);  background: rgba(0,212,255,0.05); }
+.cat-antiameaca  { color: #f87171;       border-color: rgba(248,113,113,0.35); background: rgba(248,113,113,0.05); }
+.cat-antiliga    { color: var(--red);    border-color: rgba(255,34,68,0.4);   background: rgba(255,34,68,0.06); }
+.cat-infiltracao { color: #a3e635;       border-color: rgba(163,230,53,0.35); background: rgba(163,230,53,0.05); }
+.cat-especializado { color: #38bdf8;     border-color: rgba(56,189,248,0.35); background: rgba(56,189,248,0.05); }
+.cat-mecanizado  { color: var(--yellow); border-color: rgba(255,204,0,0.35);  background: rgba(255,204,0,0.05); }
+.cat-futuro      { color: #c084fc;       border-color: rgba(192,132,252,0.35); background: rgba(192,132,252,0.05); }
+.cat-sobrevivencia { color: #fb923c;     border-color: rgba(251,146,60,0.35); background: rgba(251,146,60,0.05); }
+
+/* ── BADGES DE STATUS ──────────────────────────────────── */
+
+.badge-pronto  { color: var(--green);  border-color: rgba(0,255,136,0.4);  background: rgba(0,255,136,0.06); }
+.badge-em-uso  { color: var(--yellow); border-color: rgba(255,204,0,0.4);  background: rgba(255,204,0,0.06); }
+.badge-manut   { color: var(--red);    border-color: rgba(255,34,68,0.4);  background: rgba(255,34,68,0.06);
+                 animation: blink 1.5s step-end infinite; }
+.badge-standby { color: var(--text-dim); border-color: var(--border); background: rgba(0,212,255,0.03); }
+
+/* ── COLUNAS ESPECÍFICAS ───────────────────────────────── */
+
+.td-material { color: var(--text-dim); font-size: 9px; max-width: 160px; }
+.td-blindagem { color: var(--text-dim); font-size: 9px; max-width: 160px; }
+.td-sistemas { color: var(--cyan); font-size: 9px; max-width: 200px; opacity: 0.8; }
+.td-orig     { color: var(--text-dim); font-size: 9px; white-space: nowrap; }
+
+/* ══════════════════════════════════════════════════════════
+   RESPONSIVIDADE — TRAJES
+   ══════════════════════════════════════════════════════════ */
+
+@media (max-width: 768px) {
+  .td-material  { max-width: 100%; white-space: normal; font-size: 9px; }
+  .td-blindagem { max-width: 100%; white-space: normal; font-size: 9px; }
+  .td-sistemas  { max-width: 100%; white-space: normal; font-size: 9px; }
+  .td-orig      { white-space: normal; font-size: 8px; }
+
+  .badge-cat { font-size: 7px; padding: 2px 6px; letter-spacing: 1px; }
+
+  .badge-pronto,
+  .badge-em-uso,
+  .badge-manut,
+  .badge-standby { font-size: 7px; padding: 2px 6px; }
+}
+
+@media (max-width: 480px) {
+  .badge-cat { font-size: 6px; padding: 2px 5px; }
+}

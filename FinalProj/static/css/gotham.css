@@ -1,0 +1,101 @@
+/* ============================================================
+   WAYNE INDUSTRIES — GOTHAM CITY
+   Arquivo: gotham.css  (complementa arsenal.css + batcaverna.css)
+   ============================================================ */
+
+/* ── BADGES DISTRITO STATUS ─────────────────────────────── */
+.badge-seguro      { color: var(--green);  border-color: rgba(0,255,136,0.4);  background: rgba(0,255,136,0.06); }
+.badge-monitorado  { color: var(--cyan);   border-color: rgba(0,212,255,0.35); background: rgba(0,212,255,0.05); }
+.badge-alerta      { color: var(--yellow); border-color: rgba(255,204,0,0.4);  background: rgba(255,204,0,0.06); animation: blink 2s step-end infinite; }
+.badge-critico     { color: var(--red);    border-color: rgba(255,34,68,0.4);  background: rgba(255,34,68,0.06); animation: blink 1.5s step-end infinite; }
+.badge-controlado  { color: #a78bfa;       border-color: rgba(167,139,250,0.35); background: rgba(167,139,250,0.05); }
+.badge-perdido     { color: var(--red);    border-color: rgba(255,34,68,0.5);  background: rgba(255,34,68,0.08); animation: blink 1s step-end infinite; }
+
+/* ── BADGES OCORRÊNCIA STATUS ────────────────────────────── */
+.badge-ativa       { color: var(--red);    border-color: rgba(255,34,68,0.4);  background: rgba(255,34,68,0.06); animation: blink 1.2s step-end infinite; }
+.badge-investigando{ color: var(--yellow); border-color: rgba(255,204,0,0.4);  background: rgba(255,204,0,0.06); }
+.badge-resolvida   { color: var(--green);  border-color: rgba(0,255,136,0.4);  background: rgba(0,255,136,0.06); }
+.badge-arquivada   { color: var(--text-dim); border-color: var(--border);       background: rgba(0,212,255,0.03); }
+.badge-pendente    { color: var(--yellow); border-color: rgba(255,204,0,0.4);  background: rgba(255,204,0,0.06); }
+
+/* ── BADGES SUSPEITO STATUS ──────────────────────────────── */
+.badge-solto       { color: var(--red);    border-color: rgba(255,34,68,0.4);  background: rgba(255,34,68,0.06); animation: blink 1.5s step-end infinite; }
+.badge-preso       { color: var(--green);  border-color: rgba(0,255,136,0.4);  background: rgba(0,255,136,0.06); }
+.badge-foragido    { color: var(--red);    border-color: rgba(255,34,68,0.5);  background: rgba(255,34,68,0.08); animation: blink 1s step-end infinite; }
+.badge-internado   { color: #a78bfa;       border-color: rgba(167,139,250,0.35); background: rgba(167,139,250,0.05); }
+.badge-desaparecido{ color: var(--yellow); border-color: rgba(255,204,0,0.4);  background: rgba(255,204,0,0.06); animation: blink 2s step-end infinite; }
+.badge-morto       { color: var(--text-dim); border-color: var(--border);       background: rgba(0,212,255,0.03); }
+
+/* ── BADGES CATEGORIA DISTRITO ───────────────────────────── */
+.badge-cat {
+  display: inline-block; padding: 3px 8px;
+  font-size: 8px; letter-spacing: 2px;
+  font-family: 'Orbitron', sans-serif; font-weight: 700;
+  border: 1px solid; white-space: nowrap;
+}
+.cat-ilha-principal  { color: var(--cyan);   border-color: rgba(0,212,255,0.35); background: rgba(0,212,255,0.05); }
+.cat-ilha-norte      { color: #38bdf8;       border-color: rgba(56,189,248,0.35); background: rgba(56,189,248,0.05); }
+.cat-ilha-sul        { color: #0284c7;       border-color: rgba(2,132,199,0.35);  background: rgba(2,132,199,0.05); }
+.cat-continente      { color: #64748b;       border-color: rgba(100,116,139,0.35); background: rgba(100,116,139,0.05); }
+.cat-prisao          { color: var(--red);    border-color: rgba(255,34,68,0.35);  background: rgba(255,34,68,0.05); }
+.cat-parque          { color: #4ade80;       border-color: rgba(74,222,128,0.35); background: rgba(74,222,128,0.05); }
+.cat-comercial       { color: var(--yellow); border-color: rgba(255,204,0,0.35);  background: rgba(255,204,0,0.05); }
+.cat-residencial     { color: #a78bfa;       border-color: rgba(167,139,250,0.35); background: rgba(167,139,250,0.05); }
+.cat-portuario       { color: #fb923c;       border-color: rgba(251,146,60,0.35); background: rgba(251,146,60,0.05); }
+.cat-industrial      { color: #6b7280;       border-color: rgba(107,114,128,0.35); background: rgba(107,114,128,0.05); }
+
+/* ── BADGES TIPO OCORRÊNCIA ──────────────────────────────── */
+.cat-homicidio     { color: var(--red);    border-color: rgba(255,34,68,0.4);  background: rgba(255,34,68,0.06); }
+.cat-terrorismo    { color: var(--red);    border-color: rgba(255,34,68,0.45); background: rgba(255,34,68,0.07); }
+.cat-roubo         { color: var(--yellow); border-color: rgba(255,204,0,0.35); background: rgba(255,204,0,0.05); }
+.cat-sequestro     { color: #f87171;       border-color: rgba(248,113,113,0.4); background: rgba(248,113,113,0.06); }
+.cat-quimico       { color: #34d399;       border-color: rgba(52,211,153,0.35); background: rgba(52,211,153,0.05); }
+.cat-biologico     { color: #4ade80;       border-color: rgba(74,222,128,0.35); background: rgba(74,222,128,0.05); }
+.cat-vandalismo    { color: var(--cyan);   border-color: rgba(0,212,255,0.3);  background: rgba(0,212,255,0.04); }
+.cat-corrupcao     { color: #fb923c;       border-color: rgba(251,146,60,0.35); background: rgba(251,146,60,0.05); }
+.cat-confronto     { color: var(--red);    border-color: rgba(255,34,68,0.4);  background: rgba(255,34,68,0.06); }
+.cat-fuga          { color: var(--yellow); border-color: rgba(255,204,0,0.4);  background: rgba(255,204,0,0.06); animation: blink 1.5s step-end infinite; }
+
+/* ── BADGES TIPO SUSPEITO ────────────────────────────────── */
+.cat-meta-humano   { color: var(--red);    border-color: rgba(255,34,68,0.4);  background: rgba(255,34,68,0.06); }
+.cat-crime-organizado { color: #fb923c;   border-color: rgba(251,146,60,0.35); background: rgba(251,146,60,0.05); }
+.cat-assassino     { color: #f87171;       border-color: rgba(248,113,113,0.4); background: rgba(248,113,113,0.06); }
+.cat-terrorista    { color: var(--red);    border-color: rgba(255,34,68,0.45); background: rgba(255,34,68,0.07); }
+.cat-ladrao        { color: var(--yellow); border-color: rgba(255,204,0,0.35); background: rgba(255,204,0,0.05); }
+.cat-cientista     { color: #c084fc;       border-color: rgba(192,132,252,0.35); background: rgba(192,132,252,0.05); }
+.cat-hacker        { color: var(--cyan);   border-color: rgba(0,212,255,0.35); background: rgba(0,212,255,0.05); }
+
+/* ── NÍVEL DE AMEAÇA ────────────────────────────────────── */
+.td-nivel { font-family: 'Orbitron', sans-serif; font-weight: 900; font-size: 14px; text-align: center; }
+.nivel-10,.nivel-9 { color: var(--red); text-shadow: 0 0 8px var(--red); }
+.nivel-8,.nivel-7  { color: var(--yellow); }
+.nivel-6,.nivel-5  { color: var(--cyan); }
+.nivel-4,.nivel-3,.nivel-2,.nivel-1 { color: var(--text-dim); }
+
+/* ── COLUNAS ────────────────────────────────────────────── */
+.td-orig   { color: var(--text-dim); font-size: 9px; }
+.td-nota   { color: var(--text-dim); font-size: 10px; max-width: 220px; }
+.td-local  { color: var(--text-dim); font-size: 10px; }
+.td-pop    { font-family: 'Orbitron', sans-serif; font-size: 11px; color: var(--cyan); text-align: right; }
+
+/* ══════════════════════════════════════════════════════════
+   RESPONSIVIDADE — GOTHAM CITY
+   ══════════════════════════════════════════════════════════ */
+
+@media (max-width: 768px) {
+  .td-pop   { font-size: 10px; }
+  .td-local { white-space: normal; font-size: 9px; }
+  .td-orig  { white-space: normal; }
+
+  .badge-cat { font-size: 7px; padding: 2px 6px; letter-spacing: 1px; }
+
+  .nivel-10, .nivel-9,
+  .nivel-8,  .nivel-7,
+  .nivel-6,  .nivel-5,
+  .nivel-4,  .nivel-3,
+  .nivel-2,  .nivel-1 { font-size: 12px; }
+}
+
+@media (max-width: 480px) {
+  .badge-cat { font-size: 6px; padding: 2px 5px; }
+}

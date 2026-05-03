@@ -1,0 +1,52 @@
+/* ============================================================
+   WAYNE INDUSTRIES — BAT-COMPUTADOR
+   Arquivo: veiculos.css
+   ============================================================ */
+
+.modal-wide { width: 640px; }
+
+.badge-tipo {
+  display: inline-flex; align-items: center; gap: 5px;
+  padding: 3px 8px; font-size: 8px; letter-spacing: 2px;
+  font-family: 'Orbitron', sans-serif; font-weight: 700;
+  border: 1px solid; white-space: nowrap;
+}
+.badge-terrestre   { color: var(--cyan);   border-color: rgba(0,212,255,0.35);   background: rgba(0,212,255,0.05); }
+.badge-aereo       { color: #a78bfa;       border-color: rgba(167,139,250,0.35); background: rgba(167,139,250,0.05); }
+.badge-aquatico    { color: #38bdf8;       border-color: rgba(56,189,248,0.35);  background: rgba(56,189,248,0.05); }
+.badge-submersivel { color: #22d3ee;       border-color: rgba(34,211,238,0.35);  background: rgba(34,211,238,0.05); }
+.badge-espacial    { color: var(--yellow); border-color: rgba(255,204,0,0.35);   background: rgba(255,204,0,0.05); }
+
+.tipo-icon { font-size: 10px; }
+
+.td-vel  { font-family: 'Orbitron', sans-serif; font-size: 10px; color: var(--cyan); letter-spacing: 1px; white-space: nowrap; }
+.td-trip { font-family: 'Orbitron', sans-serif; font-size: 13px; font-weight: 900; text-align: center; color: var(--cyan); }
+.td-arm  { color: var(--text-dim); font-size: 10px; max-width: 200px; }
+.td-orig { color: var(--text-dim); font-size: 9px; letter-spacing: 1px; white-space: nowrap; }
+
+.badge-pronto { color: var(--green);  border-color: rgba(0,255,136,0.4); background: rgba(0,255,136,0.06); }
+.badge-em-uso { color: var(--yellow); border-color: rgba(255,204,0,0.4); background: rgba(255,204,0,0.06); }
+.badge-manut  { color: var(--red);    border-color: rgba(255,34,68,0.4); background: rgba(255,34,68,0.06); animation: blink 1.5s step-end infinite; }
+
+/* ══════════════════════════════════════════════════════════
+   RESPONSIVIDADE — VEÍCULOS
+   ══════════════════════════════════════════════════════════ */
+
+@media (max-width: 768px) {
+  .td-vel  { font-size: 9px; white-space: normal; }
+  .td-trip { font-size: 11px; }
+  .td-arm  { max-width: 100%; white-space: normal; font-size: 9px; }
+  .td-orig { white-space: normal; font-size: 8px; }
+
+  .badge-tipo { font-size: 7px; padding: 2px 6px; letter-spacing: 1px; }
+  .tipo-icon  { font-size: 9px; }
+
+  .badge-pronto,
+  .badge-em-uso,
+  .badge-manut { font-size: 7px; padding: 2px 6px; }
+}
+
+@media (max-width: 480px) {
+  .badge-tipo { font-size: 6px; padding: 2px 5px; }
+  .tipo-icon  { display: none; }
+}
